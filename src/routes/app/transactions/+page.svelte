@@ -35,9 +35,10 @@
 	import { badgeVariants } from '$lib/shadcn/ui/badge/badge.svelte';
 	import { flip } from 'svelte/animate';
 	import { SvelteSet } from 'svelte/reactivity';
-	import Button from '$lib/shadcn/ui/button/button.svelte';
+	import Button, { buttonVariants } from '$lib/shadcn/ui/button/button.svelte';
 	import PlusIcon from 'lucide-svelte/icons/plus';
 	import CopyIcon from 'lucide-svelte/icons/copy';
+	import * as Popover from '$lib/shadcn/ui/popover';
 	import CalendarIcon from 'lucide-svelte/icons/calendar';
 	import { fade, scale } from 'svelte/transition';
 	import Separator from '$lib/shadcn/ui/separator/separator.svelte';
@@ -48,28 +49,54 @@
 	import { cn } from '$lib/shadcn/utils';
 	import { goto } from '$app/navigation';
 	import TransactionForm from '$lib/components/forms/transaction-form/transaction-form.svelte';
-	import { CalendarDate, DateFormatter } from '@internationalized/date';
-	import type { Entities } from '$lib/types.js';
-	import { dates } from '$lib/utils/dates.js';
+	import {
+		CalendarDate,
+		DateFormatter,
+		getLocalTimeZone,
+		startOfMonth,
+		today
+	} from '@internationalized/date';
+	import { dates, dateToCalendarDate } from '$lib/utils/dates.js';
+	import MonthCalendar from '$lib/components/month-calendar.svelte';
 
 	let { data } = $props();
 
 	type SearchParams = {
 		term: string;
 		tags: Set<string>;
+		date: CalendarDate;
 	};
 
 	let searchParams = $state<SearchParams>({
 		term: data.searchParams.term,
-		tags: new SvelteSet(data.searchParams.tags)
+		tags: new SvelteSet(data.searchParams.tags),
+		date: startOfMonth(today(getLocalTimeZone()))
 	});
 
 	let searchInputValue = $state(searchParams.term);
 	let createTransactionDialogIsOpen = $state(false);
 
 	let filteredTransactions = $derived.by(() => {
+		const minDate = dates(searchParams.date.toDate(getLocalTimeZone())).utc();
+
+		function checkDate(date: Date) {
+			const transactionEndsAtDate = dates.utc(date);
+
+			const endsAfterMinDate = transactionEndsAtDate.isAfter(minDate);
+			const endsAtSameMonth = transactionEndsAtDate.isSame(minDate, 'month');
+			const matchesDate = true && (endsAfterMinDate || endsAtSameMonth);
+
+			return matchesDate;
+		}
+
 		if (searchParams.term === '' && searchParams.tags.size === 0) {
-			return data.transactions;
+			return data.transactions.filter((item) => {
+				if (item.mode === 'IN_INSTALLMENTS') {
+					return checkDate(item.lastInstallmentAt);
+				}
+
+				return true;
+			});
 		}
 
 		const term = searchParams.term.toLowerCase();
@@ -78,7 +105,12 @@
 			const isSubset = isSubsetOf(searchParams.tags, item.tags);
 			const includesTerm = item.name.toLowerCase().includes(term);
 
-			return isSubset && includesTerm;
+			let isAfterDate = true;
+			if (item.mode === 'IN_INSTALLMENTS') {
+				isAfterDate = checkDate(item.lastInstallmentAt);
+			}
+
+			return isSubset && includesTerm && isAfterDate;
 		});
 	});
 
@@ -135,10 +167,19 @@
 				<span class="sr-only"> Copiar transações </span>
 			</Button>
 
-			<Button variant="outline" class="h-12 w-12 rounded-full">
-				<CalendarIcon class="!h-6 !w-6" />
-				<span class="sr-only"> Filtrar por mês </span>
-			</Button>
+			<Popover.Root>
+				<Popover.Trigger class={cn(buttonVariants({ variant: 'outline' }), 'size-12 rounded-full')}>
+					<CalendarIcon class="!h-6 !w-6" />
+					<span class="sr-only"> Filtrar por mês </span>
+				</Popover.Trigger>
+
+				<Popover.Content align="end" side="bottom" class="p-0">
+					<MonthCalendar
+						bind:value={searchParams.date}
+						minValue={startOfMonth(today(getLocalTimeZone())).subtract({ months: 1 })}
+					/>
+				</Popover.Content>
+			</Popover.Root>
 		</div>
 	</div>
 
@@ -209,7 +250,10 @@
 	<ul>
 		{#each filteredTransactions as transaction (transaction.id)}
 			{@const paidInstallments =
-				getDatesDiffInMonths(transaction.firstInstallmentAt, dates().utc(true).toDate()) + 1}
+				getDatesDiffInMonths(
+					transaction.firstInstallmentAt,
+					searchParams.date.toDate(getLocalTimeZone())
+				) + 1}
 
 			<li
 				animate:flip={{

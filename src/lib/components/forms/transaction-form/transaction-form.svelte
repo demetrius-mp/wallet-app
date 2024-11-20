@@ -86,14 +86,6 @@
 	const createSuperFormData = (transaction?: Entities.Transaction) => {
 		return defaults(getFormDefaults(transaction), zod(TransactionSchema));
 	};
-
-	function dateToCalendarDate(date: Date) {
-		const year = date.getFullYear();
-		const month = date.getMonth() + 1;
-		const day = date.getDate();
-
-		return new CalendarDate(year, month, day);
-	}
 </script>
 
 <script lang="ts">
@@ -117,6 +109,7 @@
 	import MinusIcon from 'lucide-svelte/icons/minus';
 	import { cn } from '$lib/shadcn/utils';
 	import type { Entities } from '$lib/types';
+	import { dateToCalendarDate } from '$lib/utils/dates';
 
 	type Props = {
 		transaction?: Entities.Transaction;

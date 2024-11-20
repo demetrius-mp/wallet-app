@@ -215,7 +215,7 @@ const transactions: Entities.Transaction[] = [
 		category: 'EXPENSE',
 		mode: 'IN_INSTALLMENTS',
 		numberOfInstallments: 10,
-		lastInstallmentAt: new Date('2025-09-20')
+		lastInstallmentAt: new Date('2025-08-20')
 	},
 	{
 		id: 19,

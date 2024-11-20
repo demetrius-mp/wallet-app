@@ -12,13 +12,10 @@
 	};
 
 	let { availableTags, selectedTags = $bindable() }: Props = $props();
-
-	let open = $state(false);
-	let triggerRef = $state<HTMLButtonElement>(null!);
 </script>
 
-<Popover.Root bind:open>
-	<Popover.Trigger bind:ref={triggerRef}>
+<Popover.Root>
+	<Popover.Trigger>
 		{#snippet child({ props })}
 			<button {...props} class={cn(chipVariants({ variant: 'outline' }))}> + Adicionar tag </button>
 		{/snippet}

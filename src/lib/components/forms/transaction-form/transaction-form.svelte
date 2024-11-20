@@ -5,18 +5,18 @@
 
 	const TransactionSchema = z
 		.object({
-			mode: z.enum(['recurrent', 'single-payment', 'in-installments']),
+			mode: z.enum(['RECURRENT', 'SINGLE_PAYMENT', 'IN_INSTALLMENTS']),
 			name: z.string(),
 			value: z.number().int().positive(),
 			purchasedAt: z.string(),
-			firstChargeAt: z.string(),
+			firstInstallmentAt: z.string(),
 			numberOfInstallments: z.number().int().positive().nullish(),
-			endsAt: z.string().nullish(),
+			lastInstallmentAt: z.string().nullish(),
 			tags: z.set(z.string()).default(new Set()),
-			category: z.enum(['expense', 'income'])
+			category: z.enum(['EXPENSE', 'INCOME'])
 		})
 		.superRefine((data, ctx) => {
-			if (data.mode === 'in-installments' && (data.numberOfInstallments || 0) < 2) {
+			if (data.mode === 'IN_INSTALLMENTS' && (data.numberOfInstallments || 0) < 2) {
 				ctx.addIssue({
 					code: 'custom',
 					message: 'Deve ser pelo menos 2',
@@ -33,51 +33,51 @@
 			const endsAt = firstChargeAt.add({ months: 1 });
 
 			return {
-				mode: 'single-payment',
+				mode: 'SINGLE_PAYMENT',
 				name: '',
-				category: 'expense',
+				category: 'EXPENSE',
 				purchasedAt: todayDate.toString(),
 				tags: new Set(),
 				value: 0,
 				numberOfInstallments: 2,
-				firstChargeAt: firstChargeAt.toString(),
-				endsAt: endsAt.toString()
+				firstInstallmentAt: firstChargeAt.toString(),
+				lastInstallmentAt: endsAt.toString()
 			};
 		}
 
 		switch (transaction.mode) {
-			case 'recurrent':
+			case 'RECURRENT':
 				return {
-					mode: 'recurrent',
+					mode: 'RECURRENT',
 					name: transaction.name,
 					value: transaction.value,
 					category: transaction.category,
 					purchasedAt: dateToCalendarDate(transaction.purchasedAt).toString(),
-					firstChargeAt: dateToCalendarDate(transaction.firstInstallmentAt).toString(),
+					firstInstallmentAt: dateToCalendarDate(transaction.firstInstallmentAt).toString(),
 					tags: transaction.tags
 				};
-			case 'single-payment':
+			case 'SINGLE_PAYMENT':
 				return {
-					mode: 'single-payment',
+					mode: 'SINGLE_PAYMENT',
 					name: transaction.name,
 					value: transaction.value,
 					category: transaction.category,
 					purchasedAt: dateToCalendarDate(transaction.purchasedAt).toString(),
-					firstChargeAt: dateToCalendarDate(transaction.firstInstallmentAt).toString(),
+					firstInstallmentAt: dateToCalendarDate(transaction.firstInstallmentAt).toString(),
 					tags: transaction.tags,
 					numberOfInstallments: 1,
-					endsAt: dateToCalendarDate(transaction.lastInstallmentAt).toString()
+					lastInstallmentAt: dateToCalendarDate(transaction.lastInstallmentAt).toString()
 				};
-			case 'in-installments':
+			case 'IN_INSTALLMENTS':
 				return {
-					mode: 'in-installments',
+					mode: 'IN_INSTALLMENTS',
 					name: transaction.name,
 					value: transaction.value,
 					category: transaction.category,
 					purchasedAt: dateToCalendarDate(transaction.purchasedAt).toString(),
-					firstChargeAt: dateToCalendarDate(transaction.firstInstallmentAt).toString(),
+					firstInstallmentAt: dateToCalendarDate(transaction.firstInstallmentAt).toString(),
 					numberOfInstallments: transaction.numberOfInstallments,
-					endsAt: dateToCalendarDate(transaction.endsAt).toString(),
+					lastInstallmentAt: dateToCalendarDate(transaction.lastInstallmentAt).toString(),
 					tags: transaction.tags
 				};
 		}
@@ -149,7 +149,9 @@
 			return;
 		}
 
-		$formData.endsAt = startOfMonth(toCalendarDate(parseDate($formData.firstChargeAt)))
+		$formData.lastInstallmentAt = startOfMonth(
+			toCalendarDate(parseDate($formData.firstInstallmentAt))
+		)
 			.add({
 				months: $formData.numberOfInstallments - 1
 			})
@@ -171,7 +173,7 @@
 <Tabs.Root
 	bind:value={$formData.mode}
 	onValueChange={() => {
-		if ($formData.mode === 'in-installments') {
+		if ($formData.mode === 'IN_INSTALLMENTS') {
 			$formData.numberOfInstallments = 2;
 
 			updateFormDataEndsAt();
@@ -179,9 +181,9 @@
 	}}
 >
 	<Tabs.List class="grid w-full grid-cols-3">
-		<Tabs.Trigger value="single-payment">À vista</Tabs.Trigger>
-		<Tabs.Trigger value="recurrent">Recorrente</Tabs.Trigger>
-		<Tabs.Trigger value="in-installments">Parcelada</Tabs.Trigger>
+		<Tabs.Trigger value="SINGLE_PAYMENT">À vista</Tabs.Trigger>
+		<Tabs.Trigger value="RECURRENT">Recorrente</Tabs.Trigger>
+		<Tabs.Trigger value="IN_INSTALLMENTS">Parcelada</Tabs.Trigger>
 	</Tabs.List>
 </Tabs.Root>
 
@@ -201,9 +203,9 @@
 		<Form.Control>
 			{#snippet children({ props })}
 				<Form.Label>
-					{#if $formData.mode === 'in-installments'}
+					{#if $formData.mode === 'IN_INSTALLMENTS'}
 						Valor da parcela
-					{:else if $formData.mode === 'recurrent'}
+					{:else if $formData.mode === 'RECURRENT'}
 						Valor
 					{:else}
 						Valor
@@ -225,9 +227,9 @@
 					bind:value={$formData.purchasedAt}
 					onValueChange={(v) => {
 						if (!v) return;
-						if (touched.firstChargeAt) return;
+						if (touched.firstInstallmentAt) return;
 
-						$formData.firstChargeAt = toCalendarDate(v).add({ months: 1 }).toString();
+						$formData.firstInstallmentAt = toCalendarDate(v).add({ months: 1 }).toString();
 
 						updateFormDataEndsAt();
 					}}
@@ -241,21 +243,21 @@
 	<Form.Field
 		{form}
 		name="numberOfInstallments"
-		class={cn('relative', $formData.mode !== 'in-installments' && 'hidden')}
+		class={cn('relative', $formData.mode !== 'IN_INSTALLMENTS' && 'hidden')}
 	>
 		<Form.Control>
 			{#snippet children({ props })}
 				<Form.Label>Parcelas</Form.Label>
 				<Input
 					onchange={() => {
-						if (!$formData.firstChargeAt || !$formData.numberOfInstallments) return;
+						if (!$formData.firstInstallmentAt || !$formData.numberOfInstallments) return;
 
 						updateFormDataEndsAt();
 					}}
 					{...props}
 					type="number"
 					class="pr-20"
-					min={$formData.mode === 'in-installments' ? 2 : 0}
+					min={$formData.mode === 'IN_INSTALLMENTS' ? 2 : 0}
 					bind:value={$formData.numberOfInstallments}
 				/>
 
@@ -304,13 +306,13 @@
 		<Form.FieldErrors />
 	</Form.Field>
 
-	<Form.Field {form} name="firstChargeAt">
+	<Form.Field {form} name="firstInstallmentAt">
 		<Form.Control>
 			{#snippet children({ props })}
 				<Form.Label>
-					{#if $formData.mode === 'single-payment'}
+					{#if $formData.mode === 'SINGLE_PAYMENT'}
 						Data da cobrança
-					{:else if $formData.mode === 'recurrent'}
+					{:else if $formData.mode === 'RECURRENT'}
 						Primeiro pagamento
 					{:else}
 						Primeira parcela
@@ -318,12 +320,12 @@
 				</Form.Label>
 				<MonthField
 					{...props}
-					bind:value={$formData.firstChargeAt}
+					bind:value={$formData.firstInstallmentAt}
 					minValue={startOfMonth(parseDate($formData.purchasedAt))}
 					onValueChange={(date) => {
 						if (!date || !$formData.numberOfInstallments) return;
 
-						touched.firstChargeAt = true;
+						touched.firstInstallmentAt = true;
 
 						updateFormDataEndsAt();
 					}}
@@ -331,12 +333,12 @@
 			{/snippet}
 		</Form.Control>
 
-		{#if $formData.mode === 'in-installments' && $formData.endsAt}
+		{#if $formData.mode === 'IN_INSTALLMENTS' && $formData.lastInstallmentAt}
 			<Form.Description>
 				<span class="text-muted-foreground">
 					Última parcela em
 					<strong>
-						{formatDate($formData.endsAt)}
+						{formatDate($formData.lastInstallmentAt)}
 					</strong>.
 				</span>
 			</Form.Description>
@@ -345,7 +347,7 @@
 		<Form.FieldErrors />
 	</Form.Field>
 
-	<input type="hidden" name="endsAt" value={$formData.endsAt} />
+	<input type="hidden" name="lastInstallmentAt" value={$formData.lastInstallmentAt} />
 
 	<Form.Field {form} name="tags">
 		<Form.Control>

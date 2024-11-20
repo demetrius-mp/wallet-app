@@ -1,9 +1,4 @@
 <script lang="ts" module>
-	import dayjs from 'dayjs';
-	import utc from 'dayjs/plugin/utc';
-
-	dayjs.extend(utc);
-
 	/**
 	 * Checks if `set1` is a subset of `set2`.
 	 */
@@ -26,8 +21,8 @@
 	}
 
 	function getDatesDiffInMonths(d1: Date, d2: Date) {
-		const start = dayjs.utc(d1).startOf('month');
-		const end = dayjs.utc(d2).startOf('month');
+		const start = dates.utc(d1).startOf('month');
+		const end = dates.utc(d2).startOf('month');
 
 		const diff = end.diff(start, 'month');
 
@@ -55,6 +50,7 @@
 	import TransactionForm from '$lib/components/forms/transaction-form/transaction-form.svelte';
 	import { CalendarDate, DateFormatter } from '@internationalized/date';
 	import type { Entities } from '$lib/types.js';
+	import { dates } from '$lib/utils/dates.js';
 
 	let { data } = $props();
 
@@ -88,7 +84,7 @@
 
 	let bill = $derived.by(() => {
 		return filteredTransactions.reduce((acc, transaction) => {
-			const value = transaction.category === 'expense' ? -transaction.value : transaction.value;
+			const value = transaction.category === 'EXPENSE' ? -transaction.value : transaction.value;
 
 			return acc + value;
 		}, 0);
@@ -213,7 +209,7 @@
 	<ul>
 		{#each filteredTransactions as transaction (transaction.id)}
 			{@const paidInstallments =
-				getDatesDiffInMonths(transaction.firstChargeAt, dayjs().utc(true).toDate()) + 1}
+				getDatesDiffInMonths(transaction.firstInstallmentAt, dates().utc(true).toDate()) + 1}
 
 			<li
 				animate:flip={{
@@ -239,9 +235,9 @@
 							{formatDate(transaction.purchasedAt)}
 						</span>
 						<span class="text-nowrap text-sm">
-							{#if transaction.mode === 'in-installments'}
+							{#if transaction.mode === 'IN_INSTALLMENTS'}
 								{paidInstallments}/{transaction.numberOfInstallments}
-							{:else if transaction.mode === 'recurrent'}
+							{:else if transaction.mode === 'RECURRENT'}
 								Recorrente
 							{:else}
 								À vista

@@ -5,25 +5,25 @@ export namespace Entities {
 		name: string;
 		value: number;
 		purchasedAt: Date;
-		firstChargeAt: Date;
+		firstInstallmentAt: Date;
 		tags: Set<string>;
-		category: 'income' | 'expense';
+		category: 'INCOME' | 'EXPENSE';
 	};
 
 	export type RecurrentTransaction = BaseTransaction & {
-		mode: 'recurrent';
+		mode: 'RECURRENT';
 	};
 
 	export type SinglePaymentTransaction = BaseTransaction & {
-		mode: 'single-payment';
+		mode: 'SINGLE_PAYMENT';
 		numberOfInstallments: 1;
-		endsAt: Date;
+		lastInstallmentAt: Date;
 	};
 
 	export type InInstallmentsTransaction = BaseTransaction & {
-		mode: 'in-installments';
+		mode: 'IN_INSTALLMENTS';
 		numberOfInstallments: number;
-		endsAt: Date;
+		lastInstallmentAt: Date;
 	};
 
 	export type Transaction =

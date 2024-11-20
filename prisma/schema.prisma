@@ -1,0 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TransactionMode {
+  RECURRENT
+  SINGLE_PAYMENT
+  IN_INSTALLMENTS
+}
+
+enum TransactionCategory {
+  EXPENSE
+  INCOME
+}
+
+model Transaction {
+  id Int @id @default(autoincrement()) @map("id")
+
+  mode                 TransactionMode     @map("mode")
+  name                 String              @map("name")
+  value                Float               @map("value")
+  purchasedAt          DateTime            @map("purchased_at") @db.Date
+  firstInstallmentAt   DateTime            @map("first_installment_at") @db.Date
+  numberOfInstallments Int?                @map("number_of_installments")
+  lastInstallmentAt    DateTime?           @map("last_installment_at") @db.Date
+  tags                 String[]            @default([]) @map("tags")
+  category             TransactionCategory @map("category")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("transactions")
+}

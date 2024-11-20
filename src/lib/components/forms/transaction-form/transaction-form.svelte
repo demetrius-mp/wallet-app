@@ -53,7 +53,7 @@
 					value: transaction.value,
 					category: transaction.category,
 					purchasedAt: dateToCalendarDate(transaction.purchasedAt).toString(),
-					firstChargeAt: dateToCalendarDate(transaction.firstChargeAt).toString(),
+					firstChargeAt: dateToCalendarDate(transaction.firstInstallmentAt).toString(),
 					tags: transaction.tags
 				};
 			case 'single-payment':
@@ -63,10 +63,10 @@
 					value: transaction.value,
 					category: transaction.category,
 					purchasedAt: dateToCalendarDate(transaction.purchasedAt).toString(),
-					firstChargeAt: dateToCalendarDate(transaction.firstChargeAt).toString(),
+					firstChargeAt: dateToCalendarDate(transaction.firstInstallmentAt).toString(),
 					tags: transaction.tags,
 					numberOfInstallments: 1,
-					endsAt: dateToCalendarDate(transaction.endsAt).toString()
+					endsAt: dateToCalendarDate(transaction.lastInstallmentAt).toString()
 				};
 			case 'in-installments':
 				return {
@@ -75,7 +75,7 @@
 					value: transaction.value,
 					category: transaction.category,
 					purchasedAt: dateToCalendarDate(transaction.purchasedAt).toString(),
-					firstChargeAt: dateToCalendarDate(transaction.firstChargeAt).toString(),
+					firstChargeAt: dateToCalendarDate(transaction.firstInstallmentAt).toString(),
 					numberOfInstallments: transaction.numberOfInstallments,
 					endsAt: dateToCalendarDate(transaction.endsAt).toString(),
 					tags: transaction.tags

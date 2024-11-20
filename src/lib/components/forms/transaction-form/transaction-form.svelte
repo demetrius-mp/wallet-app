@@ -130,6 +130,7 @@
 		SPA: true,
 		dataType: 'json',
 		validators: zod(TransactionSchema),
+		validationMethod: 'onsubmit',
 		onUpdate({ form }) {
 			if (!form.valid) {
 				return;

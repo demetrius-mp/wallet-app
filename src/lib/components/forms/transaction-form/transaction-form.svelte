@@ -25,35 +25,7 @@
 			}
 		});
 
-	type BaseTransaction = {
-		id: number;
-		name: string;
-		value: number;
-		purchasedAt: Date;
-		firstChargeAt: Date;
-		tags: Set<string>;
-		category: 'income' | 'expense';
-	};
-
-	type RecurrentTransaction = BaseTransaction & {
-		mode: 'recurrent';
-	};
-
-	type SinglePaymentTransaction = BaseTransaction & {
-		mode: 'single-payment';
-		numberOfInstallments: 1;
-		endsAt: Date;
-	};
-
-	type InInstallmentsTransaction = BaseTransaction & {
-		mode: 'in-installments';
-		numberOfInstallments: number;
-		endsAt: Date;
-	};
-
-	type Transaction = RecurrentTransaction | SinglePaymentTransaction | InInstallmentsTransaction;
-
-	function getFormDefaults(transaction?: Transaction): z.infer<typeof TransactionSchema> {
+	function getFormDefaults(transaction?: Entities.Transaction): z.infer<typeof TransactionSchema> {
 		if (!transaction) {
 			const todayDate = today(getLocalTimeZone());
 
@@ -111,7 +83,7 @@
 		}
 	}
 
-	const createSuperFormData = (transaction?: Transaction) => {
+	const createSuperFormData = (transaction?: Entities.Transaction) => {
 		return defaults(getFormDefaults(transaction), zod(TransactionSchema));
 	};
 
@@ -144,9 +116,10 @@
 	import PlusIcon from 'lucide-svelte/icons/plus';
 	import MinusIcon from 'lucide-svelte/icons/minus';
 	import { cn } from '$lib/shadcn/utils';
+	import type { Entities } from '$lib/types';
 
 	type Props = {
-		transaction?: Transaction;
+		transaction?: Entities.Transaction;
 		onCancel?: () => void;
 	};
 

@@ -3,28 +3,6 @@
 	import { zod } from 'sveltekit-superforms/adapters';
 	import { z } from 'zod';
 
-	const TransactionSchema = z
-		.object({
-			mode: z.enum(['RECURRENT', 'SINGLE_PAYMENT', 'IN_INSTALLMENTS']),
-			name: z.string(),
-			value: z.number().int().positive(),
-			purchasedAt: z.string(),
-			firstInstallmentAt: z.string(),
-			numberOfInstallments: z.number().int().positive().nullish(),
-			lastInstallmentAt: z.string().nullish(),
-			tags: z.set(z.string()).default(new Set()),
-			category: z.enum(['EXPENSE', 'INCOME'])
-		})
-		.superRefine((data, ctx) => {
-			if (data.mode === 'IN_INSTALLMENTS' && (data.numberOfInstallments || 0) < 2) {
-				ctx.addIssue({
-					code: 'custom',
-					message: 'Deve ser pelo menos 2',
-					path: ['numberOfInstallments']
-				});
-			}
-		});
-
 	function getFormDefaults(transaction?: Entities.Transaction): z.infer<typeof TransactionSchema> {
 		if (!transaction) {
 			const todayDate = today(getLocalTimeZone());
@@ -105,6 +83,8 @@
 	import DateField from '$lib/components/form-fields/date-field.svelte';
 	import MonthField from '$lib/components/form-fields/month-field.svelte';
 	import TagsField from '$lib/components/form-fields/tags-field.svelte';
+	import { createTransaction } from '$lib/models/transaction';
+	import { TransactionSchema } from '$lib/schemas';
 	import Button, { buttonVariants } from '$lib/shadcn/ui/button/button.svelte';
 	import * as Form from '$lib/shadcn/ui/form';
 	import Input from '$lib/shadcn/ui/input/input.svelte';
@@ -131,12 +111,13 @@
 		dataType: 'json',
 		validators: zod(TransactionSchema),
 		validationMethod: 'onsubmit',
-		onUpdate({ form }) {
+		invalidateAll: false,
+		async onUpdate({ form }) {
 			if (!form.valid) {
 				return;
 			}
 
-			console.log(form.data);
+			await createTransaction(form.data);
 		}
 	});
 

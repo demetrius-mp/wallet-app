@@ -51,7 +51,8 @@
 		"@melt-ui/svelte": "^0.86.0",
 		"@prisma/client": "^5.22.0",
 		"@tailwindcss/typography": "^0.5.15",
-		"dayjs": "^1.11.13"
+		"dayjs": "^1.11.13",
+		"devalue": "^5.1.1"
 	},
 	"prisma": {
 		"seed": "tsx prisma/seed.ts"

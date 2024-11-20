@@ -20,3 +20,23 @@ export function dateToCalendarDate(date: Date) {
 
 	return new CalendarDate(year, month, day);
 }
+
+export function transformMonthYearDate(d: string): Date {
+	const parsed = dates(d, 'YYYY-MM-DD', true);
+
+	if (!parsed.isValid()) {
+		throw new Error('Invalid date');
+	}
+
+	return parsed.utc(true).startOf('month').toDate();
+}
+
+export function transformDayMonthYearDate(d: string): Date {
+	const parsed = dates(d, 'YYYY-MM-DD', true);
+
+	if (!parsed.isValid()) {
+		throw new Error('Invalid date');
+	}
+
+	return parsed.utc(true).toDate();
+}

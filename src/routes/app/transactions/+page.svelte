@@ -1,10 +1,19 @@
 <script lang="ts" module>
-	const dateFormatter = new DateFormatter('pt-BR', {
+	const dateFormatterShort = new DateFormatter('pt-BR', {
 		dateStyle: 'short'
 	});
 
-	function formatDate(date: Date) {
-		return dateFormatter.format(date);
+	function formatDateShort(date: Date) {
+		return dateFormatterShort.format(date);
+	}
+
+	const dateFormatterMonthYear = new DateFormatter('pt-BR', {
+		month: '2-digit',
+		year: 'numeric'
+	});
+
+	function formatDateMonthYear(date: Date) {
+		return dateFormatterMonthYear.format(date);
 	}
 
 	function getDatesDiffInMonths(d1: Date, d2: Date) {
@@ -43,7 +52,7 @@
 		startOfMonth,
 		today
 	} from '@internationalized/date';
-	import { dates, dateToCalendarDate } from '$lib/utils/dates.js';
+	import { dates } from '$lib/utils/dates.js';
 	import MonthCalendar from '$lib/components/month-calendar.svelte';
 	import AddTag from './add-tag.svelte';
 	import { isSubsetOf } from '$lib/utils/set';
@@ -111,6 +120,10 @@
 		}, 0);
 	});
 
+	let selectedMonthYear = $derived(
+		formatDateMonthYear(searchParams.date.toDate(getLocalTimeZone()))
+	);
+
 	function toggleTag(tag: string) {
 		if (searchParams.tags.has(tag)) {
 			searchParams.tags.delete(tag);
@@ -133,7 +146,9 @@
 <div class="p-4">
 	<div class="flex items-baseline gap-2">
 		<h2 class="text-2xl">Saldo</h2>
-		<small>(12/2024)</small>
+		<small>
+			({selectedMonthYear})
+		</small>
 	</div>
 
 	<span class="text-4xl font-extrabold">
@@ -145,7 +160,9 @@
 	<div class="flex items-center justify-between">
 		<div>
 			<h2 class="text-2xl">Transações</h2>
-			<span class="text-sm">do mês 12/2024</span>
+			<span class="text-sm">
+				do mês {selectedMonthYear}
+			</span>
 		</div>
 
 		<div class="flex gap-2">
@@ -261,7 +278,7 @@
 
 					<div class="flex justify-between">
 						<span class="text-sm">
-							{formatDate(transaction.purchasedAt)}
+							{formatDateShort(transaction.purchasedAt)}
 						</span>
 						<span class="text-nowrap text-sm">
 							{#if transaction.mode === 'IN_INSTALLMENTS'}

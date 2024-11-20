@@ -85,6 +85,7 @@
 	<div class="flex items-center justify-between">
 		<Button
 			onclick={() => (calendarYear -= 1)}
+			disabled={calendarYear === minValue?.year}
 			variant="outline"
 			class="size-7 bg-transparent p-0 opacity-50 hover:opacity-100"
 		>
@@ -99,6 +100,7 @@
 
 		<Button
 			onclick={() => (calendarYear += 1)}
+			disabled={calendarYear === maxValue?.year}
 			variant="outline"
 			class="size-7 bg-transparent p-0 opacity-50 hover:opacity-100"
 		>

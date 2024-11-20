@@ -142,7 +142,6 @@
 	const { form: formData, enhance } = form;
 
 	function updateFormDataEndsAt() {
-		console.log('here1');
 		if ($formData.numberOfInstallments === null || $formData.numberOfInstallments === undefined) {
 			return;
 		}

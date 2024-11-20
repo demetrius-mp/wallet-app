@@ -89,13 +89,15 @@
 </script>
 
 <script lang="ts">
+	import * as Tooltip from '$lib/shadcn/ui/tooltip';
 	import * as Tabs from '$lib/shadcn/ui/tabs';
 	import DateField from '$lib/components/form-fields/date-field.svelte';
 	import MonthField from '$lib/components/form-fields/month-field.svelte';
 	import TagsField from '$lib/components/form-fields/tags-field.svelte';
-	import Button from '$lib/shadcn/ui/button/button.svelte';
+	import Button, { buttonVariants } from '$lib/shadcn/ui/button/button.svelte';
 	import * as Form from '$lib/shadcn/ui/form';
 	import Input from '$lib/shadcn/ui/input/input.svelte';
+	import * as Popover from '$lib/shadcn/ui/popover';
 	import {
 		getLocalTimeZone,
 		parseDate,
@@ -107,6 +109,8 @@
 	} from '@internationalized/date';
 	import PlusIcon from 'lucide-svelte/icons/plus';
 	import MinusIcon from 'lucide-svelte/icons/minus';
+	import CircleHelpIcon from 'lucide-svelte/icons/circle-help';
+	import DivideIcon from 'lucide-svelte/icons/divide';
 	import { cn } from '$lib/shadcn/utils';
 	import type { Entities } from '$lib/types';
 	import { dateToCalendarDate } from '$lib/utils/dates';
@@ -138,6 +142,7 @@
 	const { form: formData, enhance } = form;
 
 	function updateFormDataEndsAt() {
+		console.log('here1');
 		if ($formData.numberOfInstallments === null || $formData.numberOfInstallments === undefined) {
 			return;
 		}
@@ -192,19 +197,66 @@
 		<Form.FieldErrors />
 	</Form.Field>
 
-	<Form.Field {form} name="value">
+	<Form.Field {form} name="value" class="relative">
 		<Form.Control>
 			{#snippet children({ props })}
-				<Form.Label>
+				<Form.Label class="inline-flex items-center justify-between gap-2">
 					{#if $formData.mode === 'IN_INSTALLMENTS'}
 						Valor da parcela
+
+						<Popover.Root>
+							<Popover.Trigger
+								class={buttonVariants({ variant: 'ghost', size: 'icon', className: 'size-4' })}
+							>
+								<CircleHelpIcon class="text-muted-foreground" />
+							</Popover.Trigger>
+							<Popover.Content side="bottom" align="center">
+								<p>
+									Você pode colocar o valor total da compra e dividir pelas parcelas clicando no
+									<strong>botão de divisão</strong>
+									(<DivideIcon class="mb-0.5 inline size-4" />).
+								</p>
+							</Popover.Content>
+						</Popover.Root>
 					{:else if $formData.mode === 'RECURRENT'}
 						Valor
 					{:else}
 						Valor
 					{/if}
 				</Form.Label>
-				<Input {...props} type="number" bind:value={$formData.value} />
+				<Input
+					class={$formData.mode === 'IN_INSTALLMENTS' ? 'pr-10' : ''}
+					{...props}
+					type="number"
+					bind:value={$formData.value}
+				/>
+
+				{#if $formData.mode === 'IN_INSTALLMENTS'}
+					<div class="absolute right-1 top-7">
+						<Tooltip.Provider delayDuration={100}>
+							<Tooltip.Root>
+								<Tooltip.Trigger
+									onclick={() => {
+										if (
+											$formData.numberOfInstallments === null ||
+											$formData.numberOfInstallments === undefined
+										) {
+											return;
+										}
+
+										$formData.value /= $formData.numberOfInstallments;
+									}}
+									class={buttonVariants({ variant: 'ghost', size: 'icon', className: 'size-8' })}
+								>
+									<DivideIcon />
+								</Tooltip.Trigger>
+								<Tooltip.Content side="top" align="end">
+									<p>Dividir pelas parcelas</p>
+								</Tooltip.Content>
+							</Tooltip.Root>
+						</Tooltip.Provider>
+					</div>
+				{/if}
 			{/snippet}
 		</Form.Control>
 
@@ -242,7 +294,7 @@
 			{#snippet children({ props })}
 				<Form.Label>Parcelas</Form.Label>
 				<Input
-					onchange={() => {
+					oninput={() => {
 						if (!$formData.firstInstallmentAt || !$formData.numberOfInstallments) return;
 
 						updateFormDataEndsAt();
@@ -255,43 +307,56 @@
 				/>
 
 				<div class="absolute right-1 top-7">
-					<Button
-						onclick={() => {
-							if (
-								$formData.numberOfInstallments === null ||
-								$formData.numberOfInstallments === undefined
-							) {
-								return;
-							}
+					<Tooltip.Provider delayDuration={100}>
+						<Tooltip.Root>
+							<Tooltip.Trigger
+								onclick={() => {
+									if (
+										$formData.numberOfInstallments === null ||
+										$formData.numberOfInstallments === undefined
+									) {
+										return;
+									}
 
-							if ($formData.numberOfInstallments > 2) {
-								$formData.numberOfInstallments -= 1;
-							}
-						}}
-						variant="ghost"
-						size="icon"
-						class="size-8"
-					>
-						<MinusIcon />
-					</Button>
+									if ($formData.numberOfInstallments > 2) {
+										$formData.numberOfInstallments -= 1;
+									}
 
-					<Button
-						onclick={() => {
-							if (
-								$formData.numberOfInstallments === null ||
-								$formData.numberOfInstallments === undefined
-							) {
-								return;
-							}
+									updateFormDataEndsAt();
+								}}
+								class={buttonVariants({ variant: 'ghost', size: 'icon', className: 'size-8' })}
+							>
+								<MinusIcon />
+							</Tooltip.Trigger>
+							<Tooltip.Content side="top" align="end">
+								<p>Diminuir</p>
+							</Tooltip.Content>
+						</Tooltip.Root>
+					</Tooltip.Provider>
 
-							$formData.numberOfInstallments += 1;
-						}}
-						variant="ghost"
-						size="icon"
-						class="size-8"
-					>
-						<PlusIcon />
-					</Button>
+					<Tooltip.Provider delayDuration={100}>
+						<Tooltip.Root>
+							<Tooltip.Trigger
+								onclick={() => {
+									if (
+										$formData.numberOfInstallments === null ||
+										$formData.numberOfInstallments === undefined
+									) {
+										return;
+									}
+
+									$formData.numberOfInstallments += 1;
+									updateFormDataEndsAt();
+								}}
+								class={buttonVariants({ variant: 'ghost', size: 'icon', className: 'size-8' })}
+							>
+								<PlusIcon />
+							</Tooltip.Trigger>
+							<Tooltip.Content side="top" align="end">
+								<p>Aumentar</p>
+							</Tooltip.Content>
+						</Tooltip.Root>
+					</Tooltip.Provider>
 				</div>
 			{/snippet}
 		</Form.Control>

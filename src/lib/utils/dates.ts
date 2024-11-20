@@ -40,3 +40,12 @@ export function transformDayMonthYearDate(d: string): Date {
 
 	return parsed.utc(true).toDate();
 }
+
+export function getDatesDiffInMonths(d1: Date, d2: Date) {
+	const start = dates.utc(d1).startOf('month');
+	const end = dates.utc(d2).startOf('month');
+
+	const diff = end.diff(start, 'month');
+
+	return diff;
+}

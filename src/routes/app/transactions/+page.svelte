@@ -1,40 +1,7 @@
-<script lang="ts" module>
-	const dateFormatterShort = new DateFormatter('pt-BR', {
-		dateStyle: 'short'
-	});
-
-	function formatDateShort(date: Date) {
-		return dateFormatterShort.format(date);
-	}
-
-	const dateFormatterMonthYear = new DateFormatter('pt-BR', {
-		month: '2-digit',
-		year: 'numeric'
-	});
-
-	function formatDateMonthYear(date: Date) {
-		return dateFormatterMonthYear.format(date);
-	}
-
-	function getDatesDiffInMonths(d1: Date, d2: Date) {
-		const start = dates.utc(d1).startOf('month');
-		const end = dates.utc(d2).startOf('month');
-
-		const diff = end.diff(start, 'month');
-
-		return diff;
-	}
-</script>
-
 <script lang="ts">
-	import {
-		CalendarDate,
-		DateFormatter,
-		getLocalTimeZone,
-		startOfMonth,
-		today
-	} from '@internationalized/date';
+	import { CalendarDate, getLocalTimeZone, startOfMonth, today } from '@internationalized/date';
 	import CalendarIcon from 'lucide-svelte/icons/calendar';
+	import Check from 'lucide-svelte/icons/check';
 	import CopyIcon from 'lucide-svelte/icons/copy';
 	import PlusIcon from 'lucide-svelte/icons/plus';
 	import SearchIcon from 'lucide-svelte/icons/search';
@@ -46,18 +13,18 @@
 	import { goto } from '$app/navigation';
 	import TransactionForm from '$lib/components/forms/transaction-form/transaction-form.svelte';
 	import MonthCalendar from '$lib/components/month-calendar.svelte';
+	import { chipVariants } from '$lib/shadcn/custom/chip.svelte';
 	import { badgeVariants } from '$lib/shadcn/ui/badge/badge.svelte';
 	import Button, { buttonVariants } from '$lib/shadcn/ui/button/button.svelte';
+	import * as Command from '$lib/shadcn/ui/command/index.js';
 	import * as Dialog from '$lib/shadcn/ui/dialog';
 	import Input from '$lib/shadcn/ui/input/input.svelte';
 	import * as Popover from '$lib/shadcn/ui/popover';
 	import Separator from '$lib/shadcn/ui/separator/separator.svelte';
 	import { cn } from '$lib/shadcn/utils';
-	import { dates } from '$lib/utils/dates.js';
+	import { dates, getDatesDiffInMonths } from '$lib/utils/dates.js';
 	import { formatCurrency } from '$lib/utils/format-currency.js';
 	import { isSubsetOf } from '$lib/utils/set';
-
-	import AddTag from './add-tag.svelte';
 
 	let { data } = $props();
 
@@ -122,10 +89,6 @@
 		}, 0);
 	});
 
-	let selectedMonthYear = $derived(
-		formatDateMonthYear(searchParams.date.toDate(getLocalTimeZone()))
-	);
-
 	function toggleTag(tag: string) {
 		if (searchParams.tags.has(tag)) {
 			searchParams.tags.delete(tag);
@@ -149,7 +112,7 @@
 	<div class="flex items-baseline gap-2">
 		<h2 class="text-2xl">Saldo</h2>
 		<small>
-			({selectedMonthYear})
+			({dates(searchParams.date.toDate(getLocalTimeZone())).format('MM/YYYY')})
 		</small>
 	</div>
 
@@ -163,7 +126,8 @@
 		<div>
 			<h2 class="text-2xl">Transações</h2>
 			<span class="text-sm">
-				do mês {selectedMonthYear}
+				do mês
+				{dates(searchParams.date.toDate(getLocalTimeZone())).format('MM/YYYY')}
 			</span>
 		</div>
 
@@ -231,6 +195,39 @@
 	</form>
 
 	<div class="mt-4 flex flex-wrap gap-2">
+		<Popover.Root>
+			<Popover.Trigger>
+				{#snippet child({ props })}
+					<button {...props} class={cn(chipVariants({ variant: 'outline' }))}>
+						+ Adicionar tag
+					</button>
+				{/snippet}
+			</Popover.Trigger>
+			<Popover.Content side="bottom" align="center" class="w-[180px] p-0">
+				<Command.Root>
+					<Command.Input placeholder="Buscar tag..." />
+					<Command.List>
+						<Command.Empty>Nenhuma tag encontrada.</Command.Empty>
+						<Command.Group>
+							{#each data.availableTags as tag}
+								<Command.Item
+									value={tag}
+									onSelect={() => toggleTag(tag)}
+									class="flex items-center justify-between break-all"
+								>
+									{tag}
+
+									{#if searchParams.tags.has(tag)}
+										<Check class="size-4" />
+									{/if}
+								</Command.Item>
+							{/each}
+						</Command.Group>
+					</Command.List>
+				</Command.Root>
+			</Popover.Content>
+		</Popover.Root>
+
 		{#each searchParams.tags as tag (tag)}
 			<button
 				animate:flip={{
@@ -245,8 +242,6 @@
 				{tag}
 			</button>
 		{/each}
-
-		<AddTag availableTags={data.availableTags} bind:selectedTags={searchParams.tags} />
 	</div>
 
 	<Separator class="my-4" />
@@ -280,7 +275,7 @@
 
 					<div class="flex justify-between">
 						<span class="text-sm">
-							{formatDateShort(transaction.purchasedAt)}
+							{dates(transaction.purchasedAt).format('DD/MM/YYYY')}
 						</span>
 						<span class="text-nowrap text-sm">
 							{#if transaction.mode === 'IN_INSTALLMENTS'}

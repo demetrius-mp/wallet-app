@@ -42,6 +42,8 @@
 		"zod": "^3.23.8"
 	},
 	"dependencies": {
+		"@melt-ui/pp": "^0.3.2",
+		"@melt-ui/svelte": "^0.86.0",
 		"@tailwindcss/typography": "^0.5.15"
 	}
 }

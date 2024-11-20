@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+
 import { Entities } from '../src/lib/types';
 
 const prisma = new PrismaClient();

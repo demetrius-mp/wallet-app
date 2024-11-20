@@ -27,24 +27,6 @@
 </script>
 
 <script lang="ts">
-	import * as Dialog from '$lib/shadcn/ui/dialog';
-	import { badgeVariants } from '$lib/shadcn/ui/badge/badge.svelte';
-	import { flip } from 'svelte/animate';
-	import { SvelteSet } from 'svelte/reactivity';
-	import Button, { buttonVariants } from '$lib/shadcn/ui/button/button.svelte';
-	import PlusIcon from 'lucide-svelte/icons/plus';
-	import CopyIcon from 'lucide-svelte/icons/copy';
-	import * as Popover from '$lib/shadcn/ui/popover';
-	import CalendarIcon from 'lucide-svelte/icons/calendar';
-	import { fade, scale } from 'svelte/transition';
-	import Separator from '$lib/shadcn/ui/separator/separator.svelte';
-	import Input from '$lib/shadcn/ui/input/input.svelte';
-	import SearchIcon from 'lucide-svelte/icons/search';
-	import XIcon from 'lucide-svelte/icons/x';
-	import { formatCurrency } from '$lib/utils/format-currency.js';
-	import { cn } from '$lib/shadcn/utils';
-	import { goto } from '$app/navigation';
-	import TransactionForm from '$lib/components/forms/transaction-form/transaction-form.svelte';
 	import {
 		CalendarDate,
 		DateFormatter,
@@ -52,10 +34,30 @@
 		startOfMonth,
 		today
 	} from '@internationalized/date';
-	import { dates } from '$lib/utils/dates.js';
+	import CalendarIcon from 'lucide-svelte/icons/calendar';
+	import CopyIcon from 'lucide-svelte/icons/copy';
+	import PlusIcon from 'lucide-svelte/icons/plus';
+	import SearchIcon from 'lucide-svelte/icons/search';
+	import XIcon from 'lucide-svelte/icons/x';
+	import { flip } from 'svelte/animate';
+	import { SvelteSet } from 'svelte/reactivity';
+	import { fade, scale } from 'svelte/transition';
+
+	import { goto } from '$app/navigation';
+	import TransactionForm from '$lib/components/forms/transaction-form/transaction-form.svelte';
 	import MonthCalendar from '$lib/components/month-calendar.svelte';
-	import AddTag from './add-tag.svelte';
+	import { badgeVariants } from '$lib/shadcn/ui/badge/badge.svelte';
+	import Button, { buttonVariants } from '$lib/shadcn/ui/button/button.svelte';
+	import * as Dialog from '$lib/shadcn/ui/dialog';
+	import Input from '$lib/shadcn/ui/input/input.svelte';
+	import * as Popover from '$lib/shadcn/ui/popover';
+	import Separator from '$lib/shadcn/ui/separator/separator.svelte';
+	import { cn } from '$lib/shadcn/utils';
+	import { dates } from '$lib/utils/dates.js';
+	import { formatCurrency } from '$lib/utils/format-currency.js';
 	import { isSubsetOf } from '$lib/utils/set';
+
+	import AddTag from './add-tag.svelte';
 
 	let { data } = $props();
 
@@ -82,7 +84,7 @@
 
 			const endsAfterMinDate = transactionEndsAtDate.isAfter(minDate);
 			const endsAtSameMonth = transactionEndsAtDate.isSame(minDate, 'month');
-			const matchesDate = true && (endsAfterMinDate || endsAtSameMonth);
+			const matchesDate = endsAfterMinDate || endsAtSameMonth;
 
 			return matchesDate;
 		}

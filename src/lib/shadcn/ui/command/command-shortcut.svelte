@@ -1,7 +1,8 @@
 <script lang="ts">
-	import type { WithElementRef } from "bits-ui";
-	import type { HTMLAttributes } from "svelte/elements";
-	import { cn } from "$lib/shadcn/utils.js";
+	import type { WithElementRef } from 'bits-ui';
+	import type { HTMLAttributes } from 'svelte/elements';
+
+	import { cn } from '$lib/shadcn/utils.js';
 
 	let {
 		ref = $bindable(null),
@@ -13,7 +14,7 @@
 
 <span
 	bind:this={ref}
-	class={cn("text-muted-foreground ml-auto text-xs tracking-widest", className)}
+	class={cn('ml-auto text-xs tracking-widest text-muted-foreground', className)}
 	{...restProps}
 >
 	{@render children?.()}

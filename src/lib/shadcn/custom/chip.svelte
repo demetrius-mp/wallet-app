@@ -1,10 +1,10 @@
 <script lang="ts" module>
-	import Badge from '$lib/shadcn/ui/badge/badge.svelte';
-	import { cn } from '$lib/shadcn/utils';
 	import XIcon from 'lucide-svelte/icons/x';
 	import type { ComponentProps } from 'svelte';
-	import type { HTMLAttributes } from 'svelte/elements';
-	import { type VariantProps, tv } from 'tailwind-variants';
+	import { tv, type VariantProps } from 'tailwind-variants';
+
+	import Badge from '$lib/shadcn/ui/badge/badge.svelte';
+	import { cn } from '$lib/shadcn/utils';
 
 	export const chipVariants = tv({
 		base: 'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',

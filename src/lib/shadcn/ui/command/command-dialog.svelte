@@ -2,16 +2,18 @@
 	import type {
 		Command as CommandPrimitive,
 		Dialog as DialogPrimitive,
-		WithoutChildrenOrChild,
-	} from "bits-ui";
-	import type { Snippet } from "svelte";
-	import Command from "./command.svelte";
-	import * as Dialog from "$lib/shadcn/ui/dialog/index.js";
+		WithoutChildrenOrChild
+	} from 'bits-ui';
+	import type { Snippet } from 'svelte';
+
+	import * as Dialog from '$lib/shadcn/ui/dialog/index.js';
+
+	import Command from './command.svelte';
 
 	let {
 		open = $bindable(false),
 		ref = $bindable(null),
-		value = $bindable(""),
+		value = $bindable(''),
 		portalProps,
 		children,
 		...restProps

@@ -1,8 +1,8 @@
+import { convertTransaction } from '$lib/models/transaction';
 import { prisma } from '$lib/server/prisma';
+import { dates } from '$lib/utils/dates';
 
 import type { PageServerLoad } from './$types';
-import { convertTransaction } from '$lib/models/transaction';
-import { dates } from '$lib/utils/dates';
 
 export const load = (async (e) => {
 	const thisMonth = dates

@@ -1,5 +1,6 @@
-import type { Entities } from '$lib/types';
 import type { Transaction } from '@prisma/client';
+
+import type { Entities } from '$lib/types';
 
 export function convertTransaction(transaction: Transaction): Entities.Transaction {
 	return {

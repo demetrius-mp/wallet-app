@@ -6,7 +6,6 @@
 </script>
 
 <script lang="ts">
-	import CalendarIcon from 'lucide-svelte/icons/calendar';
 	import {
 		CalendarDate,
 		DateFormatter,
@@ -14,14 +13,15 @@
 		getLocalTimeZone,
 		parseDate
 	} from '@internationalized/date';
+	import type { ControlAttrs } from 'formsnap';
+	import CalendarIcon from 'lucide-svelte/icons/calendar';
 
+	import MonthCalendar from '$lib/components/month-calendar.svelte';
 	import { buttonVariants } from '$lib/shadcn/ui/button/index.js';
 	import * as Popover from '$lib/shadcn/ui/popover/index.js';
-	import type { ControlAttrs } from 'formsnap';
 	import { cn } from '$lib/shadcn/utils';
-	import MonthCalendar from '$lib/components/month-calendar.svelte';
 
-	type Props = Expand<ControlAttrs> & {
+	type Props = ControlAttrs & {
 		value: string | null | undefined;
 		minValue?: DateValue;
 		maxValue?: DateValue;

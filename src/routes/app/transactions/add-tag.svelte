@@ -1,9 +1,10 @@
 <script lang="ts">
 	import Check from 'lucide-svelte/icons/check';
+
+	import { chipVariants } from '$lib/shadcn/custom/chip.svelte';
 	import * as Command from '$lib/shadcn/ui/command/index.js';
 	import * as Popover from '$lib/shadcn/ui/popover/index.js';
 	import { cn } from '$lib/shadcn/utils';
-	import { chipVariants } from '$lib/shadcn/custom/chip.svelte';
 
 	type Props = {
 		availableTags: Set<string>;

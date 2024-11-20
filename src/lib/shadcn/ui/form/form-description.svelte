@@ -1,7 +1,8 @@
 <script lang="ts">
-	import * as FormPrimitive from "formsnap";
-	import type { WithoutChild } from "bits-ui";
-	import { cn } from "$lib/shadcn/utils.js";
+	import type { WithoutChild } from 'bits-ui';
+	import * as FormPrimitive from 'formsnap';
+
+	import { cn } from '$lib/shadcn/utils.js';
 
 	let {
 		ref = $bindable(null),
@@ -12,6 +13,6 @@
 
 <FormPrimitive.Description
 	bind:ref
-	class={cn("text-muted-foreground text-sm", className)}
+	class={cn('text-sm text-muted-foreground', className)}
 	{...restProps}
 />

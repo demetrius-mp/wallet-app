@@ -1,17 +1,4 @@
 <script lang="ts" module>
-	/**
-	 * Checks if `set1` is a subset of `set2`.
-	 */
-	function isSubsetOf<T>(set1: Set<T>, set2: Set<T>): boolean {
-		for (const item of set1) {
-			if (!set2.has(item)) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
 	const dateFormatter = new DateFormatter('pt-BR', {
 		dateStyle: 'short'
 	});
@@ -58,6 +45,8 @@
 	} from '@internationalized/date';
 	import { dates, dateToCalendarDate } from '$lib/utils/dates.js';
 	import MonthCalendar from '$lib/components/month-calendar.svelte';
+	import AddTag from './add-tag.svelte';
+	import { isSubsetOf } from '$lib/utils/set';
 
 	let { data } = $props();
 
@@ -121,8 +110,6 @@
 			return acc + value;
 		}, 0);
 	});
-
-	let hasSelectedTags = $derived(searchParams.tags.size > 0);
 
 	function toggleTag(tag: string) {
 		if (searchParams.tags.has(tag)) {
@@ -225,10 +212,6 @@
 	</form>
 
 	<div class="mt-4 flex flex-wrap gap-2">
-		<span class:text-muted-foreground={!hasSelectedTags} class="transition-colors">
-			{hasSelectedTags ? 'Tags:' : 'Nenhuma tag selecionada'}
-		</span>
-
 		{#each searchParams.tags as tag (tag)}
 			<button
 				animate:flip={{
@@ -243,6 +226,8 @@
 				{tag}
 			</button>
 		{/each}
+
+		<AddTag availableTags={data.availableTags} bind:selectedTags={searchParams.tags} />
 	</div>
 
 	<Separator class="my-4" />

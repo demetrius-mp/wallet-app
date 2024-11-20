@@ -35,7 +35,20 @@ export const load = (async (e) => {
 			]
 		});
 
-		return transactions.map((t) => convertTransaction(t));
+		const availableTags = new Set<string>();
+
+		const convertedTransactions = transactions.map((t) => {
+			const converted = convertTransaction(t);
+
+			converted.tags.forEach((tag) => availableTags.add(tag));
+
+			return converted;
+		});
+
+		return {
+			transactions: convertedTransactions,
+			availableTags
+		};
 	}
 
 	const term = e.url.searchParams.get('term') || '';
@@ -47,8 +60,11 @@ export const load = (async (e) => {
 		tags
 	};
 
+	const { transactions, availableTags } = await getTransactions();
+
 	return {
-		transactions: await getTransactions(),
+		transactions,
+		availableTags,
 		searchParams
 	};
 }) satisfies PageServerLoad;

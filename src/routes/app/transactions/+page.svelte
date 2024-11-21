@@ -200,9 +200,9 @@
 					</button>
 				{/snippet}
 			</Popover.Trigger>
-			<Popover.Content side="bottom" align="center" class="w-[180px] p-0">
+			<Popover.Content side="bottom" align="start" class="w-[180px] p-0">
 				<Command.Root>
-					<Command.Input placeholder="Buscar tag..." />
+					<Command.Input class="h-8" placeholder="Buscar tag..." />
 					<Command.List>
 						<Command.Empty>Nenhuma tag encontrada.</Command.Empty>
 						<Command.Group>

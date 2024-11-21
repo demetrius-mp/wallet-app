@@ -1,5 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Entities {
+	export type TransactionMode = 'RECURRENT' | 'SINGLE_PAYMENT' | 'IN_INSTALLMENTS';
+
 	export type BaseTransaction = {
 		id: number;
 		name: string;

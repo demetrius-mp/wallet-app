@@ -21,6 +21,12 @@ export function dateToCalendarDate(date: Date) {
 	return new CalendarDate(year, month, day);
 }
 
+export function checkDateIsValid(d: string): boolean {
+	const parsed = dates(d, 'YYYY-MM-DD', true);
+
+	return parsed.isValid();
+}
+
 export function transformMonthYearDate(d: string): Date {
 	const parsed = dates(d, 'YYYY-MM-DD', true);
 

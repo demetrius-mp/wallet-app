@@ -11,13 +11,11 @@
 	import { fade, scale } from 'svelte/transition';
 
 	import { goto } from '$app/navigation';
-	import TransactionForm from '$lib/components/forms/transaction-form/transaction-form.svelte';
 	import MonthCalendar from '$lib/components/month-calendar.svelte';
 	import { chipVariants } from '$lib/shadcn/custom/chip.svelte';
 	import { badgeVariants } from '$lib/shadcn/ui/badge/badge.svelte';
 	import Button, { buttonVariants } from '$lib/shadcn/ui/button/button.svelte';
 	import * as Command from '$lib/shadcn/ui/command/index.js';
-	import * as Dialog from '$lib/shadcn/ui/dialog';
 	import Input from '$lib/shadcn/ui/input/input.svelte';
 	import * as Popover from '$lib/shadcn/ui/popover';
 	import Separator from '$lib/shadcn/ui/separator/separator.svelte';
@@ -41,7 +39,6 @@
 	});
 
 	let searchInputValue = $state(searchParams.term);
-	let createTransactionDialogIsOpen = $state(false);
 
 	let filteredTransactions = $derived.by(() => {
 		const minDate = dates(searchParams.date.toDate(getLocalTimeZone())).utc();
@@ -314,28 +311,10 @@
 
 <div>
 	<div class="mt-12"></div>
-
 	<div class="floating-button-container">
-		<Dialog.Root bind:open={createTransactionDialogIsOpen}>
-			<Dialog.Trigger>
-				{#snippet child({ props })}
-					<Button {...props} class="h-12 w-12 rounded-full">
-						<PlusIcon class="!h-6 !w-6" />
-					</Button>
-				{/snippet}
-			</Dialog.Trigger>
-			<Dialog.Content class="max-h-screen overflow-y-auto rounded-sm sm:max-w-[425px]">
-				<Dialog.Header>
-					<Dialog.Title>Nova transação</Dialog.Title>
-				</Dialog.Header>
-
-				<TransactionForm
-					onCancel={() => {
-						createTransactionDialogIsOpen = false;
-					}}
-				/>
-			</Dialog.Content>
-		</Dialog.Root>
+		<Button href="/app/transactions/new" class="h-12 w-12 rounded-full">
+			<PlusIcon class="!h-6 !w-6" />
+		</Button>
 	</div>
 </div>
 

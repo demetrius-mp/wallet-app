@@ -1,10 +1,9 @@
-import { convertTransaction } from '$lib/models/transaction';
 import { prisma } from '$lib/server/prisma';
 import { dates } from '$lib/utils/dates';
 
 import type { PageServerLoad } from './$types';
 
-export const load = (async (e) => {
+export const load = (async () => {
 	const thisMonth = dates
 		.tz(new Date(), 'America/Campo_Grande')
 		.utc(true)
@@ -35,36 +34,12 @@ export const load = (async (e) => {
 			]
 		});
 
-		const availableTags = new Set<string>();
-
-		const convertedTransactions = transactions.map((t) => {
-			const converted = convertTransaction(t);
-
-			converted.tags.forEach((tag) => availableTags.add(tag));
-
-			return converted;
-		});
-
-		return {
-			transactions: convertedTransactions,
-			availableTags
-		};
+		return transactions;
 	}
 
-	const term = e.url.searchParams.get('term') || '';
-	const tagsParam = e.url.searchParams.get('tags');
-	const tags = tagsParam ? tagsParam.split(',') : [];
-
-	const searchParams = {
-		term,
-		tags
-	};
-
-	const { transactions, availableTags } = await getTransactions();
+	const transactions = await getTransactions();
 
 	return {
-		transactions,
-		availableTags,
-		searchParams
+		transactions
 	};
 }) satisfies PageServerLoad;

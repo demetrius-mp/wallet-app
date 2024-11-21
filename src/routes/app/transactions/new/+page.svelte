@@ -2,6 +2,7 @@
 	import InInstallmentsTransactionForm from '$lib/components/forms/transaction-form/in-installments-transaction-form.svelte';
 	import RecurrentTransactionForm from '$lib/components/forms/transaction-form/recurrent-transaction-form.svelte';
 	import SinglePaymentTransactionForm from '$lib/components/forms/transaction-form/single-payment-transaction-form.svelte';
+	import MetaTags from '$lib/components/meta-tags.svelte';
 	import PageHeading from '$lib/components/page-heading.svelte';
 	import * as Tabs from '$lib/shadcn/ui/tabs';
 	import type { Entities } from '$lib/types.js';
@@ -11,9 +12,7 @@
 	let transactionMode = $state<Entities.TransactionMode>('SINGLE_PAYMENT');
 </script>
 
-<svelte:head>
-	<title>Nova transação</title>
-</svelte:head>
+<MetaTags title="Nova transação" />
 
 <div class="p-4">
 	<PageHeading

@@ -12,6 +12,7 @@
 	import { fade, scale } from 'svelte/transition';
 
 	import { goto } from '$app/navigation';
+	import MetaTags from '$lib/components/meta-tags.svelte';
 	import MonthCalendar from '$lib/components/month-calendar.svelte';
 	import { chipVariants } from '$lib/shadcn/custom/chip.svelte';
 	import { badgeVariants } from '$lib/shadcn/ui/badge/badge.svelte';
@@ -117,6 +118,8 @@
 		});
 	});
 </script>
+
+<MetaTags title="Transações" />
 
 <div class="p-4">
 	<div class="flex items-baseline gap-2">

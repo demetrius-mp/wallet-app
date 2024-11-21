@@ -225,7 +225,11 @@
 				<Command.Root>
 					<Command.Input class="h-8" placeholder="Buscar tag..." />
 					<Command.List>
-						<Command.Empty>Nenhuma tag encontrada.</Command.Empty>
+						<Command.Empty class="py-4">
+							Nenhuma tag
+							<br />
+							encontrada.
+						</Command.Empty>
 						<Command.Group>
 							{#each data.availableTags as tag}
 								<Command.Item

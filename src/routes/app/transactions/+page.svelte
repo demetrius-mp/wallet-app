@@ -308,22 +308,24 @@
 					</div>
 				</a>
 
-				<div class="mt-3 flex flex-wrap gap-2">
-					{#each transaction.tags as tag}
-						{@const isSelected = searchParams.tags.has(tag)}
+				{#if transaction.tags.size > 0}
+					<div class="mt-3 flex flex-wrap gap-2">
+						{#each transaction.tags as tag}
+							{@const isSelected = searchParams.tags.has(tag)}
 
-						<button
-							class={cn(
-								badgeVariants({
-									variant: isSelected ? 'default' : 'outline'
-								})
-							)}
-							onclick={() => toggleTag(tag)}
-						>
-							{tag}
-						</button>
-					{/each}
-				</div>
+							<button
+								class={cn(
+									badgeVariants({
+										variant: isSelected ? 'default' : 'outline'
+									})
+								)}
+								onclick={() => toggleTag(tag)}
+							>
+								{tag}
+							</button>
+						{/each}
+					</div>
+				{/if}
 
 				<Separator class="my-4" />
 			</li>

@@ -1,6 +1,6 @@
 import 'dayjs/locale/pt-br';
 
-import { CalendarDate } from '@internationalized/date';
+import { CalendarDate, getLocalTimeZone } from '@internationalized/date';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import timezone from 'dayjs/plugin/timezone';
@@ -19,6 +19,10 @@ export function dateToCalendarDate(date: Date) {
 	const day = date.getDate();
 
 	return new CalendarDate(year, month, day);
+}
+
+export function calendarDateToDayjs(date: CalendarDate) {
+	return dates(date.toDate(getLocalTimeZone())).utc(true);
 }
 
 export function checkDateIsValid(d: string): boolean {

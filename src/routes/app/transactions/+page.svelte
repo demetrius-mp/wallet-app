@@ -1,5 +1,12 @@
 <script lang="ts">
-	import { CalendarDate, getLocalTimeZone, startOfMonth, today } from '@internationalized/date';
+	import {
+		CalendarDate,
+		getLocalTimeZone,
+		isSameMonth,
+		parseDate,
+		startOfMonth,
+		today
+	} from '@internationalized/date';
 	import CalendarIcon from 'lucide-svelte/icons/calendar';
 	import Check from 'lucide-svelte/icons/check';
 	import CopyIcon from 'lucide-svelte/icons/copy';
@@ -20,7 +27,7 @@
 	import * as Popover from '$lib/shadcn/ui/popover';
 	import Separator from '$lib/shadcn/ui/separator/separator.svelte';
 	import { cn } from '$lib/shadcn/utils';
-	import { dates, getDatesDiffInMonths } from '$lib/utils/dates.js';
+	import { calendarDateToDayjs, dates, getDatesDiffInMonths } from '$lib/utils/dates.js';
 	import { formatCurrency } from '$lib/utils/format-currency.js';
 	import { isSubsetOf } from '$lib/utils/set';
 
@@ -32,10 +39,12 @@
 		date: CalendarDate;
 	};
 
+	const todayDate = today(getLocalTimeZone());
+
 	let searchParams = $state<SearchParams>({
 		term: data.searchParams.term,
 		tags: new SvelteSet(data.searchParams.tags),
-		date: startOfMonth(today(getLocalTimeZone()))
+		date: parseDate(data.searchParams.date)
 	});
 
 	let searchInputValue = $state(searchParams.term);
@@ -96,8 +105,21 @@
 
 	$effect(() => {
 		const params = new URLSearchParams();
-		params.set('term', searchParams.term);
-		params.set('tags', Array.from(searchParams.tags).join(','));
+
+		if (searchParams.term) {
+			params.set('term', searchParams.term);
+		}
+
+		if (searchParams.tags.size > 0) {
+			params.set('tags', Array.from(searchParams.tags).join(','));
+		}
+
+		if (!isSameMonth(searchParams.date, todayDate)) {
+			params.set(
+				'date',
+				calendarDateToDayjs(searchParams.date).startOf('month').format('YYYY-MM-DD')
+			);
+		}
 
 		goto(`?${params.toString()}`, {
 			keepFocus: true

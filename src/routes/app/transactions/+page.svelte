@@ -281,7 +281,7 @@
 					duration: 100
 				}}
 			>
-				<a href="/">
+				<a href="/app/transactions/{transaction.id}">
 					<div class="flex justify-between gap-2">
 						<h3 class="text-lg font-bold">
 							{transaction.name}

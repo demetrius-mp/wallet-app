@@ -140,7 +140,7 @@
 					<span class="sr-only"> Filtrar por mês </span>
 				</Popover.Trigger>
 
-				<Popover.Content align="end" side="bottom" class="p-0">
+				<Popover.Content align="end" side="bottom" class="w-auto p-0">
 					<MonthCalendar
 						bind:value={searchParams.date}
 						minValue={startOfMonth(today(getLocalTimeZone())).subtract({ months: 1 })}

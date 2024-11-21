@@ -111,7 +111,7 @@
 		</Button>
 	</div>
 
-	<div class="mt-4 grid grid-cols-4 gap-3">
+	<div class="mt-4 grid grid-cols-4 place-items-center gap-2">
 		{#each months as monthName, i}
 			{@const month = i + 1}
 			<Button

@@ -1,12 +1,6 @@
 <script lang="ts">
-	import {
-		CalendarDate,
-		getLocalTimeZone,
-		isSameMonth,
-		parseDate,
-		startOfMonth,
-		today
-	} from '@internationalized/date';
+	import { getLocalTimeZone, parseDate, startOfMonth, today } from '@internationalized/date';
+	import type { Dayjs } from 'dayjs';
 	import CalendarIcon from 'lucide-svelte/icons/calendar';
 	import Check from 'lucide-svelte/icons/check';
 	import CopyIcon from 'lucide-svelte/icons/copy';
@@ -36,21 +30,21 @@
 	type SearchParams = {
 		term: string;
 		tags: Set<string>;
-		date: CalendarDate;
+		date: Dayjs;
 	};
 
-	const todayDate = today(getLocalTimeZone());
+	const currentMonth = dates().utc(true).startOf('month');
 
 	let searchParams = $state<SearchParams>({
 		term: data.searchParams.term,
 		tags: new SvelteSet(data.searchParams.tags),
-		date: parseDate(data.searchParams.date)
+		date: dates(data.searchParams.date, 'YYYY-MM-DD').utc(true)
 	});
 
 	let searchInputValue = $state(searchParams.term);
 
 	let filteredTransactions = $derived.by(() => {
-		const minDate = dates(searchParams.date.toDate(getLocalTimeZone())).utc();
+		const minDate = searchParams.date.startOf('month');
 
 		function checkDate(date: Date) {
 			const transactionEndsAtDate = dates.utc(date);
@@ -114,11 +108,8 @@
 			params.set('tags', Array.from(searchParams.tags).join(','));
 		}
 
-		if (!isSameMonth(searchParams.date, todayDate)) {
-			params.set(
-				'date',
-				calendarDateToDayjs(searchParams.date).startOf('month').format('YYYY-MM-DD')
-			);
+		if (!searchParams.date.isSame(currentMonth, 'month')) {
+			params.set('date', searchParams.date.startOf('month').format('YYYY-MM-DD'));
 		}
 
 		goto(`?${params.toString()}`, {
@@ -131,7 +122,7 @@
 	<div class="flex items-baseline gap-2">
 		<h2 class="text-2xl">Saldo</h2>
 		<small>
-			({dates(searchParams.date.toDate(getLocalTimeZone())).format('MM/YYYY')})
+			({searchParams.date.format('MM/YYYY')})
 		</small>
 	</div>
 
@@ -146,7 +137,7 @@
 			<h2 class="text-2xl">Transações</h2>
 			<span class="text-sm">
 				do mês
-				{dates(searchParams.date.toDate(getLocalTimeZone())).format('MM/YYYY')}
+				{searchParams.date.format('MM/YYYY')}
 			</span>
 		</div>
 
@@ -164,8 +155,13 @@
 
 				<Popover.Content align="end" side="bottom" class="w-auto p-0">
 					<MonthCalendar
-						bind:value={searchParams.date}
 						minValue={startOfMonth(today(getLocalTimeZone())).subtract({ months: 1 })}
+						value={parseDate(searchParams.date.format('YYYY-MM-DD'))}
+						onValueChange={(value) => {
+							if (!value) return;
+
+							searchParams.date = calendarDateToDayjs(value);
+						}}
 					/>
 				</Popover.Content>
 			</Popover.Root>
@@ -268,10 +264,7 @@
 	<ul>
 		{#each filteredTransactions as transaction (transaction.id)}
 			{@const paidInstallments =
-				getDatesDiffInMonths(
-					transaction.firstInstallmentAt,
-					searchParams.date.toDate(getLocalTimeZone())
-				) + 1}
+				getDatesDiffInMonths(transaction.firstInstallmentAt, searchParams.date.toDate()) + 1}
 
 			<li
 				animate:flip={{

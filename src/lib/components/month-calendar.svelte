@@ -30,15 +30,22 @@
 	import { cn } from '$lib/shadcn/utils';
 
 	type Props = {
-		value?: DateValue;
+		value?: CalendarDate;
 		maxValue?: DateValue;
 		minValue?: DateValue;
-		onValueChange?: (value?: DateValue) => void;
+		onValueChange?: (value?: CalendarDate) => void;
+		allowUnselect?: boolean;
 	};
 
 	const todayDate = today(getLocalTimeZone());
 
-	let { value = $bindable(), maxValue, minValue, onValueChange }: Props = $props();
+	let {
+		value = $bindable(),
+		maxValue,
+		minValue,
+		allowUnselect = false,
+		onValueChange
+	}: Props = $props();
 
 	let selectedDate = $state(value);
 	let calendarYear = $state(todayDate.year);
@@ -66,7 +73,7 @@
 	function setSelectedDate(year: number, month: number) {
 		const newDate = new CalendarDate(year, month, 1);
 
-		if (selectedDate && isSameMonth(newDate, selectedDate)) {
+		if (selectedDate && isSameMonth(newDate, selectedDate) && allowUnselect) {
 			selectedDate = undefined;
 		} else {
 			selectedDate = new CalendarDate(year, month, 1);

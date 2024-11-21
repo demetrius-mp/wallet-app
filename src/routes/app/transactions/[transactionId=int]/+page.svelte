@@ -1,4 +1,7 @@
 <script lang="ts">
+	import type { FormOptions } from 'sveltekit-superforms';
+
+	import { goto } from '$app/navigation';
 	import InInstallmentsTransactionForm from '$lib/components/forms/transaction-form/in-installments-transaction-form.svelte';
 	import RecurrentTransactionForm from '$lib/components/forms/transaction-form/recurrent-transaction-form.svelte';
 	import SinglePaymentTransactionForm from '$lib/components/forms/transaction-form/single-payment-transaction-form.svelte';
@@ -10,6 +13,14 @@
 	let { data } = $props();
 
 	let transactionMode = $state<Entities.TransactionMode>(data.transaction.mode);
+
+	const formProps: FormOptions = {
+		onUpdate: async ({ result }) => {
+			if (result.type !== 'success') return;
+
+			await goto('/app/transactions');
+		}
+	};
 </script>
 
 <MetaTags title="Editar transação" />
@@ -36,13 +47,19 @@
 		<InInstallmentsTransactionForm
 			form={data.inInstallmentsTransactionForm}
 			action="?/inInstallments"
+			{formProps}
 		/>
 	{:else if transactionMode === 'RECURRENT'}
-		<RecurrentTransactionForm form={data.recurrentTransactionForm} action="?/recurrent" />
+		<RecurrentTransactionForm
+			form={data.recurrentTransactionForm}
+			action="?/recurrent"
+			{formProps}
+		/>
 	{:else if transactionMode === 'SINGLE_PAYMENT'}
 		<SinglePaymentTransactionForm
 			form={data.singlePaymentTransactionForm}
 			action="?/singlePayment"
+			{formProps}
 		/>
 	{/if}
 </div>

@@ -36,7 +36,7 @@
 		...formProps
 	});
 
-	const { form: formData, enhance } = form;
+	const { form: formData, enhance, submitting } = form;
 </script>
 
 <form method="POST" {action} use:enhance class="mt-4 flex flex-col gap-2">
@@ -117,6 +117,6 @@
 	</Form.Field>
 
 	<div class="flex justify-end">
-		<Button type="submit">Salvar</Button>
+		<Button disabled={$submitting} type="submit">Salvar</Button>
 	</div>
 </form>

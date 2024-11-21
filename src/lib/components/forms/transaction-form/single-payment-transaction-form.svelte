@@ -36,7 +36,7 @@
 		...formProps
 	});
 
-	const { form: formData, enhance } = form;
+	const { form: formData, enhance, submitting } = form;
 
 	function updateFormDataEndsAt() {
 		$formData.lastInstallmentAt = startOfMonth(
@@ -143,6 +143,6 @@
 	</Form.Field>
 
 	<div class="flex justify-end">
-		<Button type="submit">Salvar</Button>
+		<Button disabled={$submitting} type="submit">Salvar</Button>
 	</div>
 </form>

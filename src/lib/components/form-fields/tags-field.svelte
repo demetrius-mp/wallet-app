@@ -32,13 +32,13 @@
 		...restProps
 	}: Props = $props();
 
+	const customTagsStore = writable<Tag[]>([]);
+
 	setTags = (tags) => {
 		$customTagsStore = Array.from(tags).map((t) => ({ id: t, value: t }));
 	};
 
 	let inputRef: HTMLInputElement | null = $state(null);
-
-	const customTagsStore = writable<Tag[]>([]);
 
 	const {
 		elements: { root, input, tag, deleteTrigger, edit },

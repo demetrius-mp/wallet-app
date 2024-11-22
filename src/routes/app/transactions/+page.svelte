@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Dayjs } from 'dayjs';
 	import CalendarIcon from 'lucide-svelte/icons/calendar';
-	import Check from 'lucide-svelte/icons/check';
+	import CheckIcon from 'lucide-svelte/icons/check';
 	import CopyIcon from 'lucide-svelte/icons/copy';
 	import EditIcon from 'lucide-svelte/icons/edit';
 	import EllipsisVerticalIcon from 'lucide-svelte/icons/ellipsis-vertical';
@@ -321,7 +321,7 @@
 									{getTransactionModeLabel(transactionMode)}
 
 									{#if searchParams.transactionModeTag === transactionMode}
-										<Check />
+										<CheckIcon />
 									{/if}
 								</Command.Item>
 							{/each}
@@ -340,7 +340,7 @@
 										{tag}
 
 										{#if searchParams.tags.has(tag)}
-											<Check />
+											<CheckIcon />
 										{/if}
 									</Command.Item>
 								{/each}
@@ -459,12 +459,16 @@
 
 								<span
 									class={cn(
-										'text-sm',
+										'flex items-center gap-1 text-sm',
 										paidInstallments === transaction.numberOfInstallments
 											? 'text-green-800'
 											: 'text-muted-foreground'
 									)}
 								>
+									{#if paidInstallments === transaction.numberOfInstallments}
+										<CheckIcon class="!size-3.5" />
+									{/if}
+
 									{paidInstallments} de {transaction.numberOfInstallments} parcelas
 								</span>
 							</div>

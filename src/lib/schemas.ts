@@ -62,7 +62,7 @@ export const SinglePaymentTransactionSchema = BaseTransactionSchema.extend({
 
 export const InInstallmentsTransactionSchema = BaseTransactionSchema.extend({
 	mode: z.literal('IN_INSTALLMENTS').default('IN_INSTALLMENTS'),
-	numberOfInstallments: z.number().int().min(2),
+	numberOfInstallments: z.number().int().min(2).default(2),
 	lastInstallmentAt: z
 		.string()
 		.default(() => getToday().add(2, 'months').format('YYYY-MM-DD'))

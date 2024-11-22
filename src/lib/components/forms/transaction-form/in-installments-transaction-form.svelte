@@ -29,6 +29,7 @@
 	import * as Popover from '$lib/shadcn/ui/popover';
 	import * as RadioGroup from '$lib/shadcn/ui/radio-group';
 	import * as Tooltip from '$lib/shadcn/ui/tooltip';
+	import { formatCurrency } from '$lib/utils/format-currency';
 
 	type Props = {
 		form: SuperValidated<Infer<typeof InInstallmentsTransactionSchema>>;
@@ -128,6 +129,7 @@
 								}}
 								class={buttonVariants({ variant: 'ghost', size: 'icon', className: 'size-8' })}
 							>
+								<span class="sr-only"> Dividir pelas parcelas </span>
 								<DivideIcon />
 							</Tooltip.Trigger>
 							<Tooltip.Content side="top" align="end">
@@ -138,6 +140,13 @@
 				</div>
 			{/snippet}
 		</Form.Control>
+
+		<Form.Description>
+			Valor total:
+			<strong>
+				{formatCurrency($formData.value * $formData.numberOfInstallments)}
+			</strong>
+		</Form.Description>
 
 		<Form.FieldErrors />
 	</Form.Field>

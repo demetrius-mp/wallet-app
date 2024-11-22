@@ -13,16 +13,12 @@ dayjs.locale('pt-br');
 
 export const dates = dayjs;
 
-export function dateToCalendarDate(date: Date) {
-	const year = date.getFullYear();
-	const month = date.getMonth() + 1;
-	const day = date.getDate();
-
-	return new CalendarDate(year, month, day);
-}
-
 export function calendarDateToDayjs(date: CalendarDate) {
 	return dates(date.toDate(getLocalTimeZone())).utc(true);
+}
+
+export function dayjsToCalendarDate(date: dayjs.Dayjs): CalendarDate {
+	return new CalendarDate(date.year(), date.month() + 1, date.date());
 }
 
 export function checkDateIsValid(d: string): boolean {

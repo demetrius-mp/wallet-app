@@ -36,14 +36,15 @@ export const load = (async (e) => {
 		? transactionCategoryParam
 		: null;
 
-	const todayDate = dates
+	const nextMonth = dates
 		.tz(new Date(), 'America/Campo_Grande')
 		.utc(true)
 		.startOf('month')
+		.add(1, 'month')
 		.format('YYYY-MM-DD');
 
 	const dateParam = e.url.searchParams.get('date');
-	const date = dateParam && checkDateIsValid(dateParam) ? dateParam : todayDate;
+	const date = dateParam && checkDateIsValid(dateParam) ? dateParam : nextMonth;
 
 	const searchParams = {
 		term,

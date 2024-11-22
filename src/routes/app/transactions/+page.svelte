@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { getLocalTimeZone, parseDate, startOfMonth, today } from '@internationalized/date';
 	import type { Dayjs } from 'dayjs';
 	import CalendarIcon from 'lucide-svelte/icons/calendar';
 	import Check from 'lucide-svelte/icons/check';
@@ -29,7 +28,12 @@
 	import Separator from '$lib/shadcn/ui/separator/separator.svelte';
 	import { cn } from '$lib/shadcn/utils';
 	import type { Entities } from '$lib/types.js';
-	import { calendarDateToDayjs, dates, getDatesDiffInMonths } from '$lib/utils/dates.js';
+	import {
+		calendarDateToDayjs,
+		dates,
+		dayjsToCalendarDate,
+		getDatesDiffInMonths
+	} from '$lib/utils/dates.js';
 	import { formatCurrency } from '$lib/utils/format-currency.js';
 	import { isSubsetOf } from '$lib/utils/set';
 
@@ -43,7 +47,7 @@
 		transactionCategoryTag: Entities.TransactionCategory | null;
 	};
 
-	const currentMonth = dates().utc(true).startOf('month');
+	const nextMonth = dates().utc(true).startOf('month').add(1, 'month');
 
 	let searchParams = $state<SearchParams>({
 		term: data.searchParams.term,
@@ -52,6 +56,22 @@
 		transactionModeTag: data.searchParams.transactionModeTag,
 		transactionCategoryTag: data.searchParams.transactionCategoryTag
 	});
+
+	function checkTouchedSearchParams() {
+		const touchedTerm = () => searchParams.term !== '';
+		const touchedTags = () => searchParams.tags.size > 0;
+		const touchedDate = () => !searchParams.date.isSame(nextMonth);
+		const touchedTransactionModeTag = () => searchParams.transactionModeTag !== null;
+		const touchedTransactionCategoryTag = () => searchParams.transactionCategoryTag !== null;
+
+		return (
+			touchedTerm() ||
+			touchedTags() ||
+			touchedDate() ||
+			touchedTransactionCategoryTag() ||
+			touchedTransactionModeTag()
+		);
+	}
 
 	let searchInputValue = $state(searchParams.term);
 
@@ -74,30 +94,31 @@
 			return true;
 		}
 
-		function checkDate(date: Date) {
-			const transactionEndsAtDate = dates.utc(date);
+		function checkMatchesDate(transaction: (typeof data.transactions)[number]) {
+			const firstInstallmentAt = dates.utc(transaction.firstInstallmentAt).startOf('month');
+			const firstInstallmentIsBeforeMinDate = firstInstallmentAt.isBefore(minDate);
+			const firstInstallmentIsSameAsMinDate = firstInstallmentAt.isSame(minDate);
 
-			const endsAfterMinDate = transactionEndsAtDate.isAfter(minDate);
-			const endsAtSameMonth = transactionEndsAtDate.isSame(minDate, 'month');
-			const matchesDate = endsAfterMinDate || endsAtSameMonth;
+			if (transaction.mode === 'RECURRENT') {
+				return firstInstallmentIsBeforeMinDate || firstInstallmentIsSameAsMinDate;
+			}
 
-			return matchesDate;
+			const lastInstallmentAt = dates.utc(transaction.lastInstallmentAt).startOf('month');
+
+			const lastInstallmentIsAfterMinDate = lastInstallmentAt.isAfter(minDate);
+			const lastInstallmentIsSameMonth = lastInstallmentAt.isSame(minDate, 'month');
+
+			return (
+				(firstInstallmentIsBeforeMinDate || firstInstallmentIsSameAsMinDate) &&
+				(lastInstallmentIsAfterMinDate || lastInstallmentIsSameMonth)
+			);
 		}
 
-		if (searchParams.term === '' && searchParams.tags.size === 0) {
+		if (!checkTouchedSearchParams()) {
 			return data.transactions.filter((item) => {
-				const matchesTransactionMode = checkMatchesTransactionMode(item);
-				const matchesTransactionCategory = checkMatchesTransactionCategory(item);
+				const matchesDate = checkMatchesDate(item);
 
-				if (item.mode === 'IN_INSTALLMENTS') {
-					return (
-						checkDate(item.lastInstallmentAt) &&
-						matchesTransactionMode &&
-						matchesTransactionCategory
-					);
-				}
-
-				return matchesTransactionMode && matchesTransactionCategory;
+				return matchesDate;
 			});
 		}
 
@@ -111,7 +132,7 @@
 
 			let isAfterDate = true;
 			if (item.mode === 'IN_INSTALLMENTS') {
-				isAfterDate = checkDate(item.lastInstallmentAt);
+				isAfterDate = checkMatchesDate(item);
 			}
 
 			return (
@@ -159,7 +180,7 @@
 			params.set('tags', Array.from(searchParams.tags).join(','));
 		}
 
-		if (!searchParams.date.isSame(currentMonth, 'month')) {
+		if (!searchParams.date.isSame(nextMonth, 'month')) {
 			params.set('date', searchParams.date.startOf('month').format('YYYY-MM-DD'));
 		}
 
@@ -216,8 +237,8 @@
 
 				<Popover.Content align="end" side="bottom" class="w-auto p-0">
 					<MonthCalendar
-						minValue={startOfMonth(today(getLocalTimeZone())).subtract({ months: 1 })}
-						value={parseDate(searchParams.date.format('YYYY-MM-DD'))}
+						minValue={dayjsToCalendarDate(nextMonth.subtract(1, 'month'))}
+						value={dayjsToCalendarDate(searchParams.date)}
 						onValueChange={(value) => {
 							if (!value) return;
 
@@ -408,7 +429,7 @@
 						<Separator class="my-4" />
 
 						<div class="grid grid-cols-2 gap-2 text-sm">
-							<span class="text-muted-foreground">Data de compra:</span>
+							<span class="text-muted-foreground">Data da compra:</span>
 							<span class="text-end">
 								{dates.utc(transaction.purchasedAt).format('DD/MM/YYYY')}
 							</span>

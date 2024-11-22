@@ -16,7 +16,7 @@
 	import { goto } from '$app/navigation';
 	import MetaTags from '$lib/components/meta-tags.svelte';
 	import MonthCalendar from '$lib/components/month-calendar.svelte';
-	import { getTransactionModeLabel } from '$lib/models/transaction';
+	import { getTransactionModeLabel, TRANSACTION_MODES } from '$lib/models/transaction';
 	import { chipVariants } from '$lib/shadcn/custom/chip.svelte';
 	import { badgeVariants } from '$lib/shadcn/ui/badge/badge.svelte';
 	import Button, { buttonVariants } from '$lib/shadcn/ui/button/button.svelte';
@@ -296,19 +296,38 @@
 			<Popover.Trigger>
 				{#snippet child({ props })}
 					<button {...props} class={cn(chipVariants({ variant: 'outline' }))}>
-						+ Adicionar tag
+						+ Adicionar filtro
 					</button>
 				{/snippet}
 			</Popover.Trigger>
 			<Popover.Content side="bottom" align="start" class="w-[180px] p-0">
 				<Command.Root>
-					<Command.Input class="h-8" placeholder="Buscar tag..." />
+					<Command.Input class="h-8" placeholder="Buscar filtros..." />
 					<Command.List>
 						<Command.Empty class="py-4">
-							Nenhuma tag
+							Nenhum filtro
 							<br />
 							encontrada.
 						</Command.Empty>
+
+						<Command.Group heading="Tipos de transação">
+							{#each TRANSACTION_MODES as transactionMode}
+								<Command.Item
+									value={transactionMode}
+									onSelect={() => toggleTransactionModeTag(transactionMode)}
+									class="flex items-center justify-between break-all"
+								>
+									{getTransactionModeLabel(transactionMode)}
+
+									{#if searchParams.transactionModeTag === transactionMode}
+										<Check />
+									{/if}
+								</Command.Item>
+							{/each}
+						</Command.Group>
+
+						<Command.Separator />
+
 						<Command.Group heading="Tags">
 							{#each data.availableTags as tag}
 								<Command.Item

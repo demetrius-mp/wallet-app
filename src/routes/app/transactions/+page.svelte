@@ -379,7 +379,9 @@
 					<Card.Header class="p-4 pb-3">
 						<div class="flex items-start justify-between">
 							<Card.Title class="max-w-[calc(100%-2rem)] break-words break-all pr-2">
-								{transaction.name}
+								<a href="/app/transactions/{transaction.id}">
+									{transaction.name}
+								</a>
 							</Card.Title>
 
 							<DropdownMenu.Root>

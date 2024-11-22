@@ -16,3 +16,13 @@ export function convertTransaction(transaction: Transaction): Entities.Transacti
 		lastInstallmentAt: transaction.lastInstallmentAt
 	} as Entities.Transaction;
 }
+
+export const transactionModeLabel: Record<Entities.TransactionMode, string> = {
+	RECURRENT: 'Recorrente',
+	SINGLE_PAYMENT: 'À vista',
+	IN_INSTALLMENTS: 'Parcelada'
+};
+
+export function getTransactionModeLabel(mode: Entities.TransactionMode): string {
+	return transactionModeLabel[mode];
+}

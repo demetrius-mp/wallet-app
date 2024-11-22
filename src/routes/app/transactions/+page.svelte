@@ -4,8 +4,11 @@
 	import CalendarIcon from 'lucide-svelte/icons/calendar';
 	import Check from 'lucide-svelte/icons/check';
 	import CopyIcon from 'lucide-svelte/icons/copy';
+	import EditIcon from 'lucide-svelte/icons/edit';
+	import EllipsisVerticalIcon from 'lucide-svelte/icons/ellipsis-vertical';
 	import PlusIcon from 'lucide-svelte/icons/plus';
 	import SearchIcon from 'lucide-svelte/icons/search';
+	import TrashIcon from 'lucide-svelte/icons/trash';
 	import XIcon from 'lucide-svelte/icons/x';
 	import { flip } from 'svelte/animate';
 	import { SvelteSet } from 'svelte/reactivity';
@@ -14,10 +17,13 @@
 	import { goto } from '$app/navigation';
 	import MetaTags from '$lib/components/meta-tags.svelte';
 	import MonthCalendar from '$lib/components/month-calendar.svelte';
+	import { getTransactionModeLabel } from '$lib/models/transaction';
 	import { chipVariants } from '$lib/shadcn/custom/chip.svelte';
-	import { badgeVariants } from '$lib/shadcn/ui/badge/badge.svelte';
+	import Badge, { badgeVariants } from '$lib/shadcn/ui/badge/badge.svelte';
 	import Button, { buttonVariants } from '$lib/shadcn/ui/button/button.svelte';
+	import * as Card from '$lib/shadcn/ui/card';
 	import * as Command from '$lib/shadcn/ui/command/index.js';
+	import * as DropdownMenu from '$lib/shadcn/ui/dropdown-menu';
 	import Input from '$lib/shadcn/ui/input/input.svelte';
 	import * as Popover from '$lib/shadcn/ui/popover';
 	import Separator from '$lib/shadcn/ui/separator/separator.svelte';
@@ -230,7 +236,7 @@
 							<br />
 							encontrada.
 						</Command.Empty>
-						<Command.Group>
+						<Command.Group heading="Tags">
 							{#each data.availableTags as tag}
 								<Command.Item
 									value={tag}
@@ -240,7 +246,7 @@
 									{tag}
 
 									{#if searchParams.tags.has(tag)}
-										<Check class="size-4" />
+										<Check />
 									{/if}
 								</Command.Item>
 							{/each}
@@ -268,7 +274,7 @@
 
 	<Separator class="my-4" />
 
-	<ul>
+	<ul class="space-y-4">
 		{#each filteredTransactions as transaction (transaction.id)}
 			{@const paidInstallments =
 				getDatesDiffInMonths(transaction.firstInstallmentAt, searchParams.date.toDate()) + 1}
@@ -281,53 +287,132 @@
 					duration: 100
 				}}
 			>
-				<a href="/app/transactions/{transaction.id}">
-					<div class="flex justify-between gap-2">
-						<h3 class="text-lg font-bold">
-							{transaction.name}
-						</h3>
+				<Card.Root class="w-full max-w-lg">
+					<Card.Header class="p-4 pb-3">
+						<div class="flex items-start justify-between">
+							<Card.Title class="max-w-[calc(100%-2rem)] break-words break-all pr-2">
+								{transaction.name}
+							</Card.Title>
 
-						<span class="text-lg">
-							{formatCurrency(transaction.value)}
-						</span>
-					</div>
+							<DropdownMenu.Root>
+								<DropdownMenu.Trigger
+									class={cn(buttonVariants({ variant: 'ghost' }), 'size-8 flex-shrink-0 p-0')}
+								>
+									<span class="sr-only"> Opções </span>
+									<EllipsisVerticalIcon />
+								</DropdownMenu.Trigger>
 
-					<div class="flex justify-between">
-						<span class="text-sm">
-							{dates(transaction.purchasedAt).format('DD/MM/YYYY')}
-						</span>
-						<span class="text-nowrap text-sm">
+								<DropdownMenu.Content align="end" side="bottom">
+									<DropdownMenu.Group>
+										<DropdownMenu.Item>
+											<EditIcon class="mr-2 size-4" />
+											<span>Editar</span>
+										</DropdownMenu.Item>
+
+										<DropdownMenu.Separator />
+
+										<DropdownMenu.Item class="text-destructive data-[highlighted]:text-destructive">
+											<TrashIcon class="mr-2 size-4" />
+											<span>Excluir</span>
+										</DropdownMenu.Item>
+									</DropdownMenu.Group>
+								</DropdownMenu.Content>
+							</DropdownMenu.Root>
+						</div>
+					</Card.Header>
+
+					<Card.Content class="p-4 pt-0">
+						<div class="flex items-center justify-between gap-2">
+							<div>
+								<span class="text-xl font-bold">
+									{formatCurrency(transaction.value)}
+								</span>
+							</div>
+
+							<div>
+								<Badge variant="secondary">
+									{getTransactionModeLabel(transaction.mode)}
+								</Badge>
+							</div>
+						</div>
+
+						{#if transaction.mode === 'IN_INSTALLMENTS'}
+							<div>
+								<p class="mt-0.5 text-sm text-muted-foreground">
+									Total:
+									{formatCurrency(transaction.value * transaction.numberOfInstallments)}
+								</p>
+							</div>
+						{/if}
+
+						<Separator class="my-4" />
+
+						<div class="grid grid-cols-2 gap-2 text-sm">
+							<span class="text-muted-foreground">Data de compra:</span>
+							<span class="text-end">
+								{dates.utc(transaction.purchasedAt).format('DD/MM/YYYY')}
+							</span>
+
 							{#if transaction.mode === 'IN_INSTALLMENTS'}
-								{paidInstallments}/{transaction.numberOfInstallments}
-							{:else if transaction.mode === 'RECURRENT'}
-								Recorrente
-							{:else}
-								À vista
+								<span class="text-muted-foreground">Primeira parcela:</span>
+								<span class="text-end">
+									{dates.utc(transaction.firstInstallmentAt).format('MM/YYYY')}
+								</span>
+
+								<span class="text-muted-foreground">Última parcela:</span>
+								<span class="text-end">
+									{dates.utc(transaction.lastInstallmentAt).format('MM/YYYY')}
+								</span>
+
+								<span class="text-muted-foreground">Parcelas pagas:</span>
+								<span class="text-end">
+									{paidInstallments}/{transaction.numberOfInstallments}
+								</span>
+
+								<span class="text-muted-foreground">Valor total pago:</span>
+								<span class="text-end">
+									{formatCurrency(transaction.value * paidInstallments)}
+								</span>
+
+								<span class="text-muted-foreground">Valor restante:</span>
+								<span class="text-end">
+									{formatCurrency(
+										transaction.value * (transaction.numberOfInstallments - paidInstallments)
+									)}
+								</span>
+							{:else if transaction.mode === 'SINGLE_PAYMENT'}
+								<span class="text-muted-foreground">Data de pagamento:</span>
+								<span class="text-end">
+									{dates.utc(transaction.firstInstallmentAt).format('MM/YYYY')}
+								</span>
 							{/if}
-						</span>
-					</div>
-				</a>
+						</div>
+					</Card.Content>
 
-				{#if transaction.tags.size > 0}
-					<div class="mt-3 flex flex-wrap gap-2">
-						{#each transaction.tags as tag}
-							{@const isSelected = searchParams.tags.has(tag)}
+					{#if transaction.tags.size > 0}
+						<Card.Footer class="block p-4 pt-0">
+							<Separator class="mb-2.5" />
 
-							<button
-								class={cn(
-									badgeVariants({
-										variant: isSelected ? 'default' : 'outline'
-									})
-								)}
-								onclick={() => toggleTag(tag)}
-							>
-								{tag}
-							</button>
-						{/each}
-					</div>
-				{/if}
+							<div class="flex flex-wrap items-center gap-2">
+								<span class="mb-0.5"> Tags: </span>
+								{#each transaction.tags as tag}
+									{@const isSelected = searchParams.tags.has(tag)}
 
-				<Separator class="my-4" />
+									<button
+										class={cn(
+											badgeVariants({
+												variant: isSelected ? 'default' : 'outline'
+											})
+										)}
+										onclick={() => toggleTag(tag)}
+									>
+										{tag}
+									</button>
+								{/each}
+							</div>
+						</Card.Footer>
+					{/if}
+				</Card.Root>
 			</li>
 		{/each}
 	</ul>

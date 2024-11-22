@@ -11,7 +11,7 @@
 	import XIcon from 'lucide-svelte/icons/x';
 	import { flip } from 'svelte/animate';
 	import { SvelteSet } from 'svelte/reactivity';
-	import { fade, scale } from 'svelte/transition';
+	import { scale } from 'svelte/transition';
 
 	import { goto } from '$app/navigation';
 	import MetaTags from '$lib/components/meta-tags.svelte';
@@ -328,21 +328,23 @@
 
 						<Command.Separator />
 
-						<Command.Group heading="Tags">
-							{#each data.availableTags as tag}
-								<Command.Item
-									value={tag}
-									onSelect={() => toggleTag(tag)}
-									class="flex items-center justify-between break-all"
-								>
-									{tag}
+						{#if data.availableTags.size > 0}
+							<Command.Group heading="Tags">
+								{#each data.availableTags as tag}
+									<Command.Item
+										value={tag}
+										onSelect={() => toggleTag(tag)}
+										class="flex items-center justify-between break-all"
+									>
+										{tag}
 
-									{#if searchParams.tags.has(tag)}
-										<Check />
-									{/if}
-								</Command.Item>
-							{/each}
-						</Command.Group>
+										{#if searchParams.tags.has(tag)}
+											<Check />
+										{/if}
+									</Command.Item>
+								{/each}
+							</Command.Group>
+						{/if}
 					</Command.List>
 				</Command.Root>
 			</Popover.Content>
@@ -371,14 +373,7 @@
 			{@const paidInstallments =
 				getDatesDiffInMonths(transaction.firstInstallmentAt, searchParams.date.toDate()) + 1}
 
-			<li
-				animate:flip={{
-					duration: 100
-				}}
-				transition:fade={{
-					duration: 100
-				}}
-			>
+			<li>
 				<Card.Root class="w-full max-w-lg">
 					<Card.Header class="p-4 pb-3">
 						<div class="flex items-start justify-between">
@@ -441,11 +436,22 @@
 						</div>
 
 						{#if transaction.mode === 'IN_INSTALLMENTS'}
-							<div>
-								<p class="mt-0.5 text-sm text-muted-foreground">
+							<div class="mt-2 flex justify-between">
+								<span class="text-sm text-muted-foreground">
 									Total:
 									{formatCurrency(transaction.value * transaction.numberOfInstallments)}
-								</p>
+								</span>
+
+								<span
+									class={cn(
+										'text-sm',
+										paidInstallments === transaction.numberOfInstallments
+											? 'text-green-800'
+											: 'text-muted-foreground'
+									)}
+								>
+									{paidInstallments} de {transaction.numberOfInstallments} parcelas
+								</span>
 							</div>
 						{/if}
 
@@ -463,27 +469,24 @@
 									{dates.utc(transaction.firstInstallmentAt).format('MM/YYYY')}
 								</span>
 
-								<span class="text-muted-foreground">Última parcela:</span>
-								<span class="text-end">
-									{dates.utc(transaction.lastInstallmentAt).format('MM/YYYY')}
-								</span>
+								{#if transaction.numberOfInstallments !== paidInstallments}
+									<span class="text-muted-foreground">Última parcela:</span>
+									<span class="text-end">
+										{dates.utc(transaction.lastInstallmentAt).format('MM/YYYY')}
+									</span>
 
-								<span class="text-muted-foreground">Parcelas pagas:</span>
-								<span class="text-end">
-									{paidInstallments}/{transaction.numberOfInstallments}
-								</span>
+									<span class="text-muted-foreground">Valor total pago:</span>
+									<span class="text-end">
+										{formatCurrency(transaction.value * paidInstallments)}
+									</span>
 
-								<span class="text-muted-foreground">Valor total pago:</span>
-								<span class="text-end">
-									{formatCurrency(transaction.value * paidInstallments)}
-								</span>
-
-								<span class="text-muted-foreground">Valor restante:</span>
-								<span class="text-end">
-									{formatCurrency(
-										transaction.value * (transaction.numberOfInstallments - paidInstallments)
-									)}
-								</span>
+									<span class="text-muted-foreground">Valor restante:</span>
+									<span class="text-end">
+										{formatCurrency(
+											transaction.value * (transaction.numberOfInstallments - paidInstallments)
+										)}
+									</span>
+								{/if}
 							{:else if transaction.mode === 'SINGLE_PAYMENT'}
 								<span class="text-muted-foreground">Data de pagamento:</span>
 								<span class="text-end">

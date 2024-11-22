@@ -13,6 +13,7 @@
 	import { SvelteSet } from 'svelte/reactivity';
 	import { scale } from 'svelte/transition';
 
+	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import MetaTags from '$lib/components/meta-tags.svelte';
 	import MonthCalendar from '$lib/components/month-calendar.svelte';
@@ -402,9 +403,21 @@
 
 										<DropdownMenu.Separator />
 
-										<DropdownMenu.Item class="text-destructive data-[highlighted]:text-destructive">
-											<TrashIcon class="mr-2 size-4" />
-											<span>Excluir</span>
+										<DropdownMenu.Item
+											class="w-full cursor-pointer text-destructive data-[highlighted]:text-destructive"
+										>
+											{#snippet child({ props })}
+												<form
+													method="post"
+													action="/app/transactions/{transaction.id}?/delete"
+													use:enhance
+												>
+													<button {...props} type="submit">
+														<TrashIcon class="mr-2 size-4" />
+														<span>Excluir</span>
+													</button>
+												</form>
+											{/snippet}
 										</DropdownMenu.Item>
 									</DropdownMenu.Group>
 								</DropdownMenu.Content>

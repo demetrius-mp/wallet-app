@@ -1,6 +1,9 @@
+import type { TRANSACTION_CATEGORIES, TRANSACTION_MODES } from '$lib/models/transaction';
+
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Entities {
-	export type TransactionMode = 'RECURRENT' | 'SINGLE_PAYMENT' | 'IN_INSTALLMENTS';
+	export type TransactionMode = (typeof TRANSACTION_MODES)[number];
+	export type TransactionCategory = (typeof TRANSACTION_CATEGORIES)[number];
 
 	export type BaseTransaction = {
 		id: number;

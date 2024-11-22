@@ -1,4 +1,8 @@
-import { convertTransaction } from '$lib/models/transaction';
+import {
+	checkTransactionCategoryIsValid,
+	checkTransactionModeIsValid,
+	convertTransaction
+} from '$lib/models/transaction';
 import { checkDateIsValid, dates } from '$lib/utils/dates';
 import { setUnion } from '$lib/utils/set';
 
@@ -22,6 +26,16 @@ export const load = (async (e) => {
 	const tagsParam = e.url.searchParams.get('tags');
 	const tags = tagsParam ? tagsParam.split(',') : [];
 
+	const transactionModeParam = e.url.searchParams.get('transactionModeTag') || '';
+	const transactionModeTag = checkTransactionModeIsValid(transactionModeParam)
+		? transactionModeParam
+		: null;
+
+	const transactionCategoryParam = e.url.searchParams.get('transactionCategoryTag') || '';
+	const transactionCategoryTag = checkTransactionCategoryIsValid(transactionCategoryParam)
+		? transactionCategoryParam
+		: null;
+
 	const todayDate = dates
 		.tz(new Date(), 'America/Campo_Grande')
 		.utc(true)
@@ -34,6 +48,8 @@ export const load = (async (e) => {
 	const searchParams = {
 		term,
 		tags,
+		transactionModeTag,
+		transactionCategoryTag,
 		date
 	};
 

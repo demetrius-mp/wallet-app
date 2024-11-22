@@ -19,7 +19,7 @@
 	import MonthCalendar from '$lib/components/month-calendar.svelte';
 	import { getTransactionModeLabel } from '$lib/models/transaction';
 	import { chipVariants } from '$lib/shadcn/custom/chip.svelte';
-	import Badge, { badgeVariants } from '$lib/shadcn/ui/badge/badge.svelte';
+	import { badgeVariants } from '$lib/shadcn/ui/badge/badge.svelte';
 	import Button, { buttonVariants } from '$lib/shadcn/ui/button/button.svelte';
 	import * as Card from '$lib/shadcn/ui/card';
 	import * as Command from '$lib/shadcn/ui/command/index.js';
@@ -28,6 +28,7 @@
 	import * as Popover from '$lib/shadcn/ui/popover';
 	import Separator from '$lib/shadcn/ui/separator/separator.svelte';
 	import { cn } from '$lib/shadcn/utils';
+	import type { Entities } from '$lib/types.js';
 	import { calendarDateToDayjs, dates, getDatesDiffInMonths } from '$lib/utils/dates.js';
 	import { formatCurrency } from '$lib/utils/format-currency.js';
 	import { isSubsetOf } from '$lib/utils/set';
@@ -38,6 +39,8 @@
 		term: string;
 		tags: Set<string>;
 		date: Dayjs;
+		transactionModeTag: Entities.TransactionMode | null;
+		transactionCategoryTag: Entities.TransactionCategory | null;
 	};
 
 	const currentMonth = dates().utc(true).startOf('month');
@@ -45,13 +48,31 @@
 	let searchParams = $state<SearchParams>({
 		term: data.searchParams.term,
 		tags: new SvelteSet(data.searchParams.tags),
-		date: dates(data.searchParams.date, 'YYYY-MM-DD').utc(true)
+		date: dates(data.searchParams.date, 'YYYY-MM-DD').utc(true),
+		transactionModeTag: data.searchParams.transactionModeTag,
+		transactionCategoryTag: data.searchParams.transactionCategoryTag
 	});
 
 	let searchInputValue = $state(searchParams.term);
 
 	let filteredTransactions = $derived.by(() => {
 		const minDate = searchParams.date.startOf('month');
+
+		function checkMatchesTransactionMode(transaction: (typeof data.transactions)[number]) {
+			if (searchParams.transactionModeTag) {
+				return transaction.mode === searchParams.transactionModeTag;
+			}
+
+			return true;
+		}
+
+		function checkMatchesTransactionCategory(transaction: (typeof data.transactions)[number]) {
+			if (searchParams.transactionCategoryTag) {
+				return transaction.category === searchParams.transactionCategoryTag;
+			}
+
+			return true;
+		}
 
 		function checkDate(date: Date) {
 			const transactionEndsAtDate = dates.utc(date);
@@ -65,11 +86,18 @@
 
 		if (searchParams.term === '' && searchParams.tags.size === 0) {
 			return data.transactions.filter((item) => {
+				const matchesTransactionMode = checkMatchesTransactionMode(item);
+				const matchesTransactionCategory = checkMatchesTransactionCategory(item);
+
 				if (item.mode === 'IN_INSTALLMENTS') {
-					return checkDate(item.lastInstallmentAt);
+					return (
+						checkDate(item.lastInstallmentAt) &&
+						matchesTransactionMode &&
+						matchesTransactionCategory
+					);
 				}
 
-				return true;
+				return matchesTransactionMode && matchesTransactionCategory;
 			});
 		}
 
@@ -78,13 +106,21 @@
 		return data.transactions.filter((item) => {
 			const isSubset = isSubsetOf(searchParams.tags, item.tags);
 			const includesTerm = item.name.toLowerCase().includes(term);
+			const matchesTransactionMode = checkMatchesTransactionMode(item);
+			const matchesTransactionCategory = checkMatchesTransactionCategory(item);
 
 			let isAfterDate = true;
 			if (item.mode === 'IN_INSTALLMENTS') {
 				isAfterDate = checkDate(item.lastInstallmentAt);
 			}
 
-			return isSubset && includesTerm && isAfterDate;
+			return (
+				isSubset &&
+				includesTerm &&
+				isAfterDate &&
+				matchesTransactionMode &&
+				matchesTransactionCategory
+			);
 		});
 	});
 
@@ -104,6 +140,14 @@
 		}
 	}
 
+	function toggleTransactionModeTag(tag: Entities.TransactionMode) {
+		if (searchParams.transactionModeTag === tag) {
+			searchParams.transactionModeTag = null;
+		} else {
+			searchParams.transactionModeTag = tag;
+		}
+	}
+
 	$effect(() => {
 		const params = new URLSearchParams();
 
@@ -117,6 +161,14 @@
 
 		if (!searchParams.date.isSame(currentMonth, 'month')) {
 			params.set('date', searchParams.date.startOf('month').format('YYYY-MM-DD'));
+		}
+
+		if (searchParams.transactionModeTag) {
+			params.set('transactionModeTag', searchParams.transactionModeTag);
+		}
+
+		if (searchParams.transactionCategoryTag) {
+			params.set('transactionCategoryTag', searchParams.transactionCategoryTag);
 		}
 
 		goto(`?${params.toString()}`, {
@@ -330,9 +382,17 @@
 							</div>
 
 							<div>
-								<Badge variant="secondary">
+								<button
+									class={cn(
+										badgeVariants({
+											variant:
+												searchParams.transactionModeTag === transaction.mode ? 'default' : 'outline'
+										})
+									)}
+									onclick={() => toggleTransactionModeTag(transaction.mode)}
+								>
 									{getTransactionModeLabel(transaction.mode)}
-								</Badge>
+								</button>
 							</div>
 						</div>
 

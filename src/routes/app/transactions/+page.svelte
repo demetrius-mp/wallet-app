@@ -108,6 +108,10 @@
 			const lastInstallmentIsAfterMinDate = lastInstallmentAt.isAfter(minDate);
 			const lastInstallmentIsSameMonth = lastInstallmentAt.isSame(minDate, 'month');
 
+			if (transaction.mode === 'SINGLE_PAYMENT') {
+				return lastInstallmentIsSameMonth;
+			}
+
 			return (
 				(firstInstallmentIsBeforeMinDate || firstInstallmentIsSameAsMinDate) &&
 				(lastInstallmentIsAfterMinDate || lastInstallmentIsSameMonth)
@@ -129,16 +133,12 @@
 			const includesTerm = item.name.toLowerCase().includes(term);
 			const matchesTransactionMode = checkMatchesTransactionMode(item);
 			const matchesTransactionCategory = checkMatchesTransactionCategory(item);
-
-			let isAfterDate = true;
-			if (item.mode === 'IN_INSTALLMENTS') {
-				isAfterDate = checkMatchesDate(item);
-			}
+			const matchesDate = checkMatchesDate(item);
 
 			return (
 				isSubset &&
 				includesTerm &&
-				isAfterDate &&
+				matchesDate &&
 				matchesTransactionMode &&
 				matchesTransactionCategory
 			);
@@ -396,9 +396,13 @@
 
 								<DropdownMenu.Content align="end" side="bottom">
 									<DropdownMenu.Group>
-										<DropdownMenu.Item>
-											<EditIcon class="mr-2 size-4" />
-											<span>Editar</span>
+										<DropdownMenu.Item class="cursor-pointer">
+											{#snippet child({ props })}
+												<a href="/app/transactions/{transaction.id}" {...props}>
+													<EditIcon class="mr-2 size-4" />
+													<span>Editar</span>
+												</a>
+											{/snippet}
 										</DropdownMenu.Item>
 
 										<DropdownMenu.Separator />

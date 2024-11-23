@@ -1,4 +1,4 @@
-import { error } from '@sveltejs/kit';
+import { error, fail as kitFail } from '@sveltejs/kit';
 import { fail, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
@@ -180,12 +180,14 @@ export const actions = {
 
 		const paymentHistory = await prisma.transactionPaymentConfirmation.findFirst({
 			where: {
-				transactionId,
-				paidAt: paymentDate.toDate()
+				transactionId
 			},
 			select: {
 				id: true,
 				paidAt: true
+			},
+			orderBy: {
+				paidAt: 'desc'
 			}
 		});
 
@@ -203,6 +205,26 @@ export const actions = {
 		}
 
 		const lastPaymentDate = dates.utc(paymentHistory.paidAt).startOf('month');
+
+		if (lastPaymentDate.add(1, 'month').isSame(paymentDate)) {
+			await prisma.transactionPaymentConfirmation.create({
+				data: {
+					transactionId,
+					paidAt: paymentDate.toDate()
+				}
+			});
+
+			return {
+				status: 'created'
+			};
+		}
+
+		if (paymentDate.isBefore(lastPaymentDate, 'month')) {
+			return kitFail(400, {
+				message:
+					'Você não pode confirmar um pagamento de uma data anterior a um pagamento já confirmado'
+			});
+		}
 
 		if (paymentDate.isSame(lastPaymentDate, 'month')) {
 			await prisma.transactionPaymentConfirmation.delete({

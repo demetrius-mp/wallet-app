@@ -14,9 +14,10 @@
 	import { flip } from 'svelte/animate';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { scale } from 'svelte/transition';
+	import { toast } from 'svelte-sonner';
 
-	import { enhance } from '$app/forms';
-	import { goto } from '$app/navigation';
+	import { applyAction, enhance } from '$app/forms';
+	import { goto, invalidateAll } from '$app/navigation';
 	import MetaTags from '$lib/components/meta-tags.svelte';
 	import MonthCalendar from '$lib/components/month-calendar.svelte';
 	import {
@@ -403,7 +404,19 @@
 								<form
 									method="post"
 									action="/app/transactions/{transaction.id}?/confirmPayment"
-									use:enhance
+									use:enhance={() => {
+										return async ({ result }) => {
+											if (result.type === 'failure' && result.data) {
+												const message = result.data.message as string;
+												toast.error(message);
+											} else if (result.type === 'success' && result.data) {
+												toast.success('Pagamento confirmado');
+											}
+
+											await applyAction(result);
+											await invalidateAll();
+										};
+									}}
 								>
 									<input
 										type="hidden"

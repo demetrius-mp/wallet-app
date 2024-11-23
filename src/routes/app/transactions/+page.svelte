@@ -203,14 +203,14 @@
 		</div>
 
 		<div class="flex gap-2">
-			<Button variant="outline" class="h-12 w-12 rounded-full">
-				<CopyIcon class="!h-6 !w-6" />
+			<Button variant="outline" class="size-12 rounded-full">
+				<CopyIcon class="!size-6" />
 				<span class="sr-only"> Copiar transações </span>
 			</Button>
 
 			<Popover.Root>
 				<Popover.Trigger class={cn(buttonVariants({ variant: 'outline' }), 'size-12 rounded-full')}>
-					<CalendarIcon class="!h-6 !w-6" />
+					<CalendarIcon class="!size-6" />
 					<span class="sr-only"> Filtrar por mês </span>
 				</Popover.Trigger>
 
@@ -258,7 +258,7 @@
 					aria-label="Limpar pesquisa"
 				>
 					<XIcon
-						class="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground"
+						class="size-4 text-muted-foreground transition-colors group-hover:text-foreground"
 					/>
 				</Button>
 			{/if}
@@ -540,8 +540,8 @@
 <div>
 	<div class="mt-12"></div>
 	<div class="floating-button-container">
-		<Button href="/app/transactions/new" class="h-12 w-12 rounded-full">
-			<PlusIcon class="!h-6 !w-6" />
+		<Button href="/app/transactions/new" class="size-12 rounded-full">
+			<PlusIcon class="!size-6" />
 		</Button>
 	</div>
 </div>

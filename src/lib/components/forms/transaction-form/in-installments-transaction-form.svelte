@@ -22,7 +22,7 @@
 	import DateField from '$lib/components/form-fields/date-field.svelte';
 	import MonthField from '$lib/components/form-fields/month-field.svelte';
 	import TagsField from '$lib/components/form-fields/tags-field.svelte';
-	import { InInstallmentsTransactionSchema } from '$lib/schemas';
+	import { BaseTransactionSchema, InInstallmentsTransactionSchema } from '$lib/schemas';
 	import Button, { buttonVariants } from '$lib/shadcn/ui/button/button.svelte';
 	import * as Form from '$lib/shadcn/ui/form';
 	import Input from '$lib/shadcn/ui/input/input.svelte';
@@ -33,11 +33,12 @@
 
 	type Props = {
 		form: SuperValidated<Infer<typeof InInstallmentsTransactionSchema>>;
+		baseFormData?: z.infer<typeof BaseTransactionSchema>;
 		formProps?: FormOptions<Infer<typeof InInstallmentsTransactionSchema>>;
 		action: string;
 	};
 
-	let { form: data, formProps, action }: Props = $props();
+	let { form: data, formProps, action, baseFormData = $bindable() }: Props = $props();
 
 	let touched = $state<{
 		[key in keyof z.infer<typeof InInstallmentsTransactionSchema>]?: boolean;
@@ -51,6 +52,15 @@
 	});
 
 	const { form: formData, enhance, submitting } = form;
+
+	if (baseFormData) {
+		$formData.name = baseFormData.name;
+		$formData.value = baseFormData.value;
+		$formData.purchasedAt = baseFormData.purchasedAt;
+		$formData.firstInstallmentAt = baseFormData.firstInstallmentAt;
+		$formData.tags = baseFormData.tags;
+		$formData.category = baseFormData.category;
+	}
 
 	function updateFormDataEndsAt() {
 		if ($formData.numberOfInstallments === null || $formData.numberOfInstallments === undefined) {
@@ -76,6 +86,10 @@
 			startOfMonth(toCalendarDate(parseDate(date))).toDate(getLocalTimeZone())
 		);
 	}
+
+	$effect(() => {
+		baseFormData = $formData;
+	});
 </script>
 
 <form method="POST" {action} use:enhance class="mt-4 flex flex-col gap-2">

@@ -6,7 +6,7 @@ function getToday() {
 	return dates.tz(new Date(), 'America/Campo_Grande').utc(true).startOf('day');
 }
 
-const BaseTransactionSchema = z.object({
+export const BaseTransactionSchema = z.object({
 	name: z.string(),
 	value: z.number().int().positive(),
 	purchasedAt: z

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { FormOptions } from 'sveltekit-superforms';
+	import type { z } from 'zod';
 
 	import { goto } from '$app/navigation';
 	import InInstallmentsTransactionForm from '$lib/components/forms/transaction-form/in-installments-transaction-form.svelte';
@@ -7,12 +8,15 @@
 	import SinglePaymentTransactionForm from '$lib/components/forms/transaction-form/single-payment-transaction-form.svelte';
 	import MetaTags from '$lib/components/meta-tags.svelte';
 	import PageHeading from '$lib/components/page-heading.svelte';
+	import type { BaseTransactionSchema } from '$lib/schemas.js';
 	import * as Tabs from '$lib/shadcn/ui/tabs';
 	import type { Entities } from '$lib/types.js';
 
 	let { data } = $props();
 
 	let transactionMode = $state<Entities.TransactionMode>('SINGLE_PAYMENT');
+
+	let baseFormData = $state<z.infer<typeof BaseTransactionSchema> | undefined>(undefined);
 
 	const formProps: FormOptions = {
 		onUpdate: async ({ result }) => {
@@ -45,18 +49,21 @@
 
 	{#if transactionMode === 'IN_INSTALLMENTS'}
 		<InInstallmentsTransactionForm
+			bind:baseFormData
 			form={data.inInstallmentsTransactionForm}
 			action="?/inInstallments"
 			{formProps}
 		/>
 	{:else if transactionMode === 'RECURRENT'}
 		<RecurrentTransactionForm
+			bind:baseFormData
 			form={data.recurrentTransactionForm}
 			action="?/recurrent"
 			{formProps}
 		/>
 	{:else if transactionMode === 'SINGLE_PAYMENT'}
 		<SinglePaymentTransactionForm
+			bind:baseFormData
 			form={data.singlePaymentTransactionForm}
 			action="?/singlePayment"
 			{formProps}

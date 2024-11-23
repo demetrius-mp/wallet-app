@@ -3,10 +3,33 @@ import {
 	checkTransactionModeIsValid,
 	convertTransaction
 } from '$lib/models/transaction';
+import type { Entities } from '$lib/types';
 import { checkDateIsValid, dates } from '$lib/utils/dates';
 import { setUnion } from '$lib/utils/set';
 
 import type { PageLoad } from './$types';
+
+function checkTransactionModeTagsParamIsValid(param: string | null): Entities.TransactionMode[] {
+	if (!param) return [];
+
+	const tags = param.split(',');
+
+	if (!tags.every(checkTransactionModeIsValid)) return [];
+
+	return tags;
+}
+
+function checkTransactionCategoryTagsParamIsValid(
+	param: string | null
+): Entities.TransactionCategory[] {
+	if (!param) return [];
+
+	const tags = param.split(',');
+
+	if (!tags.every(checkTransactionCategoryIsValid)) return [];
+
+	return tags;
+}
 
 export const load = (async (e) => {
 	let availableTags = new Set<string>();
@@ -26,15 +49,13 @@ export const load = (async (e) => {
 	const tagsParam = e.url.searchParams.get('tags');
 	const tags = tagsParam ? tagsParam.split(',') : [];
 
-	const transactionModeParam = e.url.searchParams.get('transactionModeTag') || '';
-	const transactionModeTag = checkTransactionModeIsValid(transactionModeParam)
-		? transactionModeParam
-		: null;
+	const transactionCategoryTagsParam = e.url.searchParams.get('transactionCategoryTags');
+	const transactionCategoryTags = checkTransactionCategoryTagsParamIsValid(
+		transactionCategoryTagsParam
+	);
 
-	const transactionCategoryParam = e.url.searchParams.get('transactionCategoryTag') || '';
-	const transactionCategoryTag = checkTransactionCategoryIsValid(transactionCategoryParam)
-		? transactionCategoryParam
-		: null;
+	const transactionModeTagsParam = e.url.searchParams.get('transactionModeTags');
+	const transactionModeTags = checkTransactionModeTagsParamIsValid(transactionModeTagsParam);
 
 	const nextMonth = dates
 		.tz(new Date(), 'America/Campo_Grande')
@@ -49,8 +70,8 @@ export const load = (async (e) => {
 	const searchParams = {
 		term,
 		tags,
-		transactionModeTag,
-		transactionCategoryTag,
+		transactionModeTags,
+		transactionCategoryTags,
 		date
 	};
 

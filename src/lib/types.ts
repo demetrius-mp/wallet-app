@@ -5,6 +5,10 @@ export namespace Entities {
 	export type TransactionMode = (typeof TRANSACTION_MODES)[number];
 	export type TransactionCategory = (typeof TRANSACTION_CATEGORIES)[number];
 
+	type PaymentConfirmation = {
+		paidAt: Date;
+	};
+
 	export type BaseTransaction = {
 		id: number;
 		name: string;
@@ -13,6 +17,7 @@ export namespace Entities {
 		firstInstallmentAt: Date;
 		tags: Set<string>;
 		category: 'INCOME' | 'EXPENSE';
+		paymentConfirmations: PaymentConfirmation[];
 	};
 
 	export type RecurrentTransaction = BaseTransaction & {

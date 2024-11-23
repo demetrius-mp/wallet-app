@@ -41,5 +41,21 @@ model Transaction {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  paymentConfirmations TransactionPaymentConfirmation[]
+
   @@map("transactions")
+}
+
+model TransactionPaymentConfirmation {
+  id Int @id @default(autoincrement()) @map("id")
+
+  transactionId Int         @map("transaction_id")
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+
+  paidAt DateTime @map("paid_at") @db.Date
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("transaction_payment_confirmations")
 }

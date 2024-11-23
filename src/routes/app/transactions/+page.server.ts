@@ -12,6 +12,17 @@ export const load = (async () => {
 
 	async function getTransactions() {
 		const transactions = await prisma.transaction.findMany({
+			include: {
+				paymentConfirmations: {
+					select: {
+						paidAt: true
+					},
+					orderBy: {
+						paidAt: 'desc'
+					},
+					take: 1
+				}
+			},
 			where: {
 				OR: [
 					{

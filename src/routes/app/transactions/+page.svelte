@@ -7,6 +7,8 @@
 	import EllipsisVerticalIcon from 'lucide-svelte/icons/ellipsis-vertical';
 	import PlusIcon from 'lucide-svelte/icons/plus';
 	import SearchIcon from 'lucide-svelte/icons/search';
+	import SquareIcon from 'lucide-svelte/icons/square';
+	import SquareCheckIcon from 'lucide-svelte/icons/square-check';
 	import TrashIcon from 'lucide-svelte/icons/trash';
 	import XIcon from 'lucide-svelte/icons/x';
 	import { flip } from 'svelte/animate';
@@ -115,6 +117,10 @@
 
 	let bill = $derived.by(() => {
 		return filteredTransactions.reduce((acc, transaction) => {
+			if (!checkPaymentIsConfirmed(transaction)) {
+				return acc;
+			}
+
 			const value = transaction.category === 'EXPENSE' ? -transaction.value : transaction.value;
 
 			return acc + value;
@@ -143,6 +149,21 @@
 		} else {
 			searchParams.transactionCategoryTags.add(tag);
 		}
+	}
+
+	function checkPaymentIsConfirmed(transaction: (typeof data.transactions)[0]) {
+		const lastPayment = transaction.paymentConfirmations.at(0);
+
+		if (!lastPayment) {
+			return false;
+		}
+
+		const paidAt = dates.utc(lastPayment.paidAt);
+
+		const isSameMonth = paidAt.isSame(searchParams.date, 'month');
+		const isAfterMonth = paidAt.isAfter(searchParams.date, 'month');
+
+		return isSameMonth || isAfterMonth;
 	}
 
 	$effect(() => {
@@ -363,59 +384,100 @@
 
 	<ul class="space-y-4">
 		{#each filteredTransactions as transaction (transaction.id)}
+			{@const paymentIsConfirmed = checkPaymentIsConfirmed(transaction)}
 			{@const paidInstallments =
-				getDatesDiffInMonths(transaction.firstInstallmentAt, searchParams.date.toDate()) + 1}
+				getDatesDiffInMonths(transaction.firstInstallmentAt, searchParams.date.toDate()) +
+				(paymentIsConfirmed ? 1 : 0)}
 
 			<li>
 				<Card.Root class="w-full max-w-lg">
 					<Card.Header class="p-4 pb-3">
 						<div class="flex items-start justify-between">
-							<Card.Title class="max-w-[calc(100%-2rem)] break-words break-all pr-2">
+							<Card.Title class="max-w-[calc(100%-5rem)] break-words break-all pr-2">
 								<a href="/app/transactions/{transaction.id}">
 									{transaction.name}
 								</a>
 							</Card.Title>
 
-							<DropdownMenu.Root>
-								<DropdownMenu.Trigger
-									class={cn(buttonVariants({ variant: 'ghost' }), 'size-8 flex-shrink-0 p-0')}
+							<div class="flex items-center gap-2">
+								<form
+									method="post"
+									action="/app/transactions/{transaction.id}?/confirmPayment"
+									use:enhance
 								>
-									<span class="sr-only"> Opções </span>
-									<EllipsisVerticalIcon />
-								</DropdownMenu.Trigger>
+									<input
+										type="hidden"
+										name="paymentDate"
+										value={searchParams.date.format('YYYY-MM-DD')}
+									/>
 
-								<DropdownMenu.Content align="end" side="bottom">
-									<DropdownMenu.Group>
-										<DropdownMenu.Item class="cursor-pointer">
-											{#snippet child({ props })}
-												<a href="/app/transactions/{transaction.id}" {...props}>
-													<EditIcon class="mr-2 size-4" />
-													<span>Editar</span>
-												</a>
-											{/snippet}
-										</DropdownMenu.Item>
+									<button
+										class={cn(
+											buttonVariants({ variant: 'ghost' }),
+											'size-8 p-0',
+											paymentIsConfirmed && 'text-green-800 hover:text-green-800'
+										)}
+										type="submit"
+									>
+										{#if paymentIsConfirmed}
+											<span class="sr-only">
+												{transaction.category === 'EXPENSE'
+													? 'Marcar como não pago'
+													: 'Marcar como não recebido'}
+											</span>
+											<SquareCheckIcon />
+										{:else}
+											<span class="sr-only">
+												{transaction.category === 'EXPENSE'
+													? 'Marcar como pago'
+													: 'Marcar como recebido'}
+											</span>
+											<SquareIcon />
+										{/if}
+									</button>
+								</form>
 
-										<DropdownMenu.Separator />
+								<DropdownMenu.Root>
+									<DropdownMenu.Trigger
+										class={cn(buttonVariants({ variant: 'ghost' }), 'size-8 p-0')}
+									>
+										<span class="sr-only"> Opções </span>
+										<EllipsisVerticalIcon />
+									</DropdownMenu.Trigger>
 
-										<DropdownMenu.Item
-											class="w-full cursor-pointer text-destructive data-[highlighted]:text-destructive"
-										>
-											{#snippet child({ props })}
-												<form
-													method="post"
-													action="/app/transactions/{transaction.id}?/delete"
-													use:enhance
-												>
-													<button {...props} type="submit">
-														<TrashIcon class="mr-2 size-4" />
-														<span>Excluir</span>
-													</button>
-												</form>
-											{/snippet}
-										</DropdownMenu.Item>
-									</DropdownMenu.Group>
-								</DropdownMenu.Content>
-							</DropdownMenu.Root>
+									<DropdownMenu.Content align="end" side="bottom">
+										<DropdownMenu.Group>
+											<DropdownMenu.Item class="cursor-pointer">
+												{#snippet child({ props })}
+													<a href="/app/transactions/{transaction.id}" {...props}>
+														<EditIcon class="mr-2 size-4" />
+														<span>Editar transação</span>
+													</a>
+												{/snippet}
+											</DropdownMenu.Item>
+
+											<DropdownMenu.Separator />
+
+											<DropdownMenu.Item
+												class="w-full cursor-pointer text-destructive data-[highlighted]:text-destructive"
+											>
+												{#snippet child({ props })}
+													<form
+														method="post"
+														action="/app/transactions/{transaction.id}?/delete"
+														use:enhance
+													>
+														<button {...props} type="submit">
+															<TrashIcon class="mr-2 size-4" />
+															<span>Excluir transação</span>
+														</button>
+													</form>
+												{/snippet}
+											</DropdownMenu.Item>
+										</DropdownMenu.Group>
+									</DropdownMenu.Content>
+								</DropdownMenu.Root>
+							</div>
 						</div>
 					</Card.Header>
 
@@ -462,7 +524,11 @@
 										<CheckIcon class="!size-3.5" />
 									{/if}
 
-									{paidInstallments} de {transaction.numberOfInstallments} parcelas
+									{#if paidInstallments === 0}
+										Nenhuma parcela paga
+									{:else}
+										{paidInstallments} de {transaction.numberOfInstallments} parcelas
+									{/if}
 								</span>
 							</div>
 						{/if}

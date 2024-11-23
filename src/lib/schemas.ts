@@ -83,3 +83,10 @@ export const InInstallmentsTransactionSchema = BaseTransactionSchema.extend({
 		});
 	}
 });
+
+export const ConfirmPaymentSchema = z.object({
+	paymentDate: z
+		.string()
+		.default(() => getToday().format('YYYY-MM-DD'))
+		.refine((d) => checkDateIsValid(d))
+});

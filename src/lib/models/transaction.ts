@@ -8,7 +8,9 @@ import { isSubsetOf } from '$lib/utils/set';
 export const TRANSACTION_MODES = ['RECURRENT', 'SINGLE_PAYMENT', 'IN_INSTALLMENTS'] as const;
 export const TRANSACTION_CATEGORIES = ['INCOME', 'EXPENSE'] as const;
 
-export function convertTransaction(transaction: Transaction): Entities.Transaction {
+function convertRecurrentTransaction(
+	transaction: Transaction & { paymentConfirmations: { paidAt: Date }[] }
+): Entities.RecurrentTransaction {
 	return {
 		id: transaction.id,
 		name: transaction.name,
@@ -17,10 +19,67 @@ export function convertTransaction(transaction: Transaction): Entities.Transacti
 		firstInstallmentAt: transaction.firstInstallmentAt,
 		tags: new Set(transaction.tags),
 		category: transaction.category,
-		mode: transaction.mode,
+		mode: 'RECURRENT',
+		paymentConfirmations: transaction.paymentConfirmations
+	};
+}
+
+function convertSinglePaymentTransaction(
+	transaction: Transaction & { paymentConfirmations: { paidAt: Date }[] }
+): Entities.SinglePaymentTransaction {
+	if (transaction.numberOfInstallments !== 1 || transaction.lastInstallmentAt === null) {
+		throw new Error('Invalid Single Payment Transaction');
+	}
+
+	return {
+		id: transaction.id,
+		name: transaction.name,
+		value: transaction.value,
+		numberOfInstallments: 1,
+		firstInstallmentAt: transaction.firstInstallmentAt,
+		lastInstallmentAt: transaction.lastInstallmentAt,
+		purchasedAt: transaction.purchasedAt,
+		category: transaction.category,
+		mode: 'SINGLE_PAYMENT',
+		tags: new Set(transaction.tags),
+		paymentConfirmations: transaction.paymentConfirmations
+	};
+}
+
+function convertInInstallmentsTransaction(
+	transaction: Transaction & { paymentConfirmations: { paidAt: Date }[] }
+): Entities.InInstallmentsTransaction {
+	if (transaction.numberOfInstallments === null || transaction.lastInstallmentAt === null) {
+		throw new Error('Invalid In Installments Transaction');
+	}
+
+	return {
+		id: transaction.id,
+		name: transaction.name,
+		value: transaction.value,
+		purchasedAt: transaction.purchasedAt,
+		firstInstallmentAt: transaction.firstInstallmentAt,
+		tags: new Set(transaction.tags),
+		category: transaction.category,
+		mode: 'IN_INSTALLMENTS',
 		numberOfInstallments: transaction.numberOfInstallments,
-		lastInstallmentAt: transaction.lastInstallmentAt
-	} as Entities.Transaction;
+		lastInstallmentAt: transaction.lastInstallmentAt,
+		paymentConfirmations: transaction.paymentConfirmations
+	};
+}
+
+export function convertTransaction(
+	transaction: Transaction & { paymentConfirmations: { paidAt: Date }[] }
+): Entities.Transaction {
+	switch (transaction.mode) {
+		case 'RECURRENT':
+			return convertRecurrentTransaction(transaction);
+		case 'SINGLE_PAYMENT':
+			return convertSinglePaymentTransaction(transaction);
+
+		case 'IN_INSTALLMENTS':
+			return convertInInstallmentsTransaction(transaction);
+	}
 }
 
 export const transactionModeLabel: Record<Entities.TransactionMode, string> = {

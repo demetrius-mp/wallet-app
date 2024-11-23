@@ -3,12 +3,13 @@ import { fail, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
 import {
+	ConfirmPaymentSchema,
 	InInstallmentsTransactionSchema,
 	RecurrentTransactionSchema,
 	SinglePaymentTransactionSchema
 } from '$lib/schemas';
 import { prisma } from '$lib/server/prisma';
-import { transformDayMonthYearDate, transformMonthYearDate } from '$lib/utils/dates';
+import { dates, transformDayMonthYearDate, transformMonthYearDate } from '$lib/utils/dates';
 
 import type { Actions, PageServerLoad } from './$types';
 
@@ -130,7 +131,7 @@ export const actions = {
 			data: {
 				...data,
 				purchasedAt: transformDayMonthYearDate(data.purchasedAt),
-				firstInstallmentAt: transformDayMonthYearDate(data.firstInstallmentAt),
+				firstInstallmentAt: transformMonthYearDate(data.firstInstallmentAt),
 				lastInstallmentAt: transformMonthYearDate(data.lastInstallmentAt),
 				tags: Array.from(data.tags)
 			}
@@ -153,5 +154,62 @@ export const actions = {
 				id: transactionId
 			}
 		});
+	},
+	async confirmPayment(e) {
+		const transactionId = parseInt(e.params.transactionId);
+
+		const transaction = await prisma.transaction.findFirst({
+			where: {
+				id: transactionId
+			}
+		});
+
+		if (!transaction) {
+			error(404, { message: 'Transação não encontrada' });
+		}
+
+		const form = await superValidate(e, zod(ConfirmPaymentSchema));
+
+		if (!form.valid) {
+			return fail(400, { form });
+		}
+
+		const { data } = form;
+
+		const paymentDate = dates.utc(data.paymentDate, 'YYYY-MM-DD').startOf('month');
+
+		const paymentHistory = await prisma.transactionPaymentConfirmation.findFirst({
+			where: {
+				transactionId,
+				paidAt: paymentDate.toDate()
+			},
+			select: {
+				id: true,
+				paidAt: true
+			}
+		});
+
+		if (!paymentHistory) {
+			await prisma.transactionPaymentConfirmation.create({
+				data: {
+					transactionId,
+					paidAt: paymentDate.toDate()
+				}
+			});
+
+			return;
+		}
+
+		const lastPaymentDate = dates.utc(paymentHistory.paidAt).startOf('month');
+
+		if (paymentDate.isSame(lastPaymentDate, 'month')) {
+			await prisma.transactionPaymentConfirmation.delete({
+				where: {
+					id: paymentHistory.id
+				}
+			});
+
+			return;
+		}
 	}
 } satisfies Actions;

@@ -1,0 +1,652 @@
+<script lang="ts">
+	import type { Dayjs } from 'dayjs';
+	import CalendarIcon from 'lucide-svelte/icons/calendar';
+	import CheckIcon from 'lucide-svelte/icons/check';
+	import CopyIcon from 'lucide-svelte/icons/copy';
+	import EditIcon from 'lucide-svelte/icons/edit';
+	import EllipsisVerticalIcon from 'lucide-svelte/icons/ellipsis-vertical';
+	import PlusIcon from 'lucide-svelte/icons/plus';
+	import SearchIcon from 'lucide-svelte/icons/search';
+	import SquareIcon from 'lucide-svelte/icons/square';
+	import SquareCheckIcon from 'lucide-svelte/icons/square-check';
+	import TrashIcon from 'lucide-svelte/icons/trash';
+	import XIcon from 'lucide-svelte/icons/x';
+	import { flip } from 'svelte/animate';
+	import { SvelteSet } from 'svelte/reactivity';
+	import { scale } from 'svelte/transition';
+
+	import { enhance } from '$app/forms';
+	import { goto } from '$app/navigation';
+	import MetaTags from '$lib/components/meta-tags.svelte';
+	import MonthCalendar from '$lib/components/month-calendar.svelte';
+	import {
+		getTransactionCategoryLabel,
+		getTransactionModeLabel,
+		TRANSACTION_CATEGORIES,
+		TRANSACTION_MODES,
+		transactionFilters
+	} from '$lib/models/transaction';
+	import { useTransactions } from '$lib/providers/transactions-provider/transactions-provider.svelte';
+	import { chipVariants } from '$lib/shadcn/custom/chip.svelte';
+	import { badgeVariants } from '$lib/shadcn/ui/badge/badge.svelte';
+	import Button, { buttonVariants } from '$lib/shadcn/ui/button/button.svelte';
+	import * as Card from '$lib/shadcn/ui/card';
+	import * as Command from '$lib/shadcn/ui/command/index.js';
+	import * as DropdownMenu from '$lib/shadcn/ui/dropdown-menu';
+	import Input from '$lib/shadcn/ui/input/input.svelte';
+	import * as Popover from '$lib/shadcn/ui/popover';
+	import Separator from '$lib/shadcn/ui/separator/separator.svelte';
+	import { cn } from '$lib/shadcn/utils';
+	import type { Entities } from '$lib/types.js';
+	import {
+		calendarDateToDayjs,
+		dates,
+		dayjsToCalendarDate,
+		getDatesDiffInMonths
+	} from '$lib/utils/dates.js';
+	import { formatCurrency } from '$lib/utils/format-currency.js';
+
+	type Props = {
+		data: {
+			availableTags: Set<string>;
+			searchParams: {
+				term: string;
+				tags: string[];
+				transactionModeTags: ('RECURRENT' | 'SINGLE_PAYMENT' | 'IN_INSTALLMENTS')[];
+				transactionCategoryTags: ('INCOME' | 'EXPENSE')[];
+				date: string;
+			};
+		};
+	};
+
+	let { data }: Props = $props();
+	const { transactions } = useTransactions();
+
+	type SearchParams = {
+		term: string;
+		tags: Set<string>;
+		date: Dayjs;
+		transactionModeTags: Set<Entities.TransactionMode>;
+		transactionCategoryTags: Set<Entities.TransactionCategory>;
+	};
+
+	const nextMonth = dates().utc(true).startOf('month').add(1, 'month');
+
+	let searchParams = $state<SearchParams>({
+		term: data.searchParams.term,
+		tags: new SvelteSet(data.searchParams.tags),
+		date: dates(data.searchParams.date, 'YYYY-MM-DD').utc(true),
+		transactionModeTags: new SvelteSet(data.searchParams.transactionModeTags),
+		transactionCategoryTags: new SvelteSet(data.searchParams.transactionCategoryTags)
+	});
+
+	function checkTouchedSearchParams() {
+		const touchedTerm = () => searchParams.term !== '';
+		const touchedTags = () => searchParams.tags.size > 0;
+		const touchedDate = () => !searchParams.date.isSame(nextMonth);
+		const touchedTransactionModeTag = () => searchParams.transactionModeTags !== null;
+		const touchedTransactionCategoryTag = () => searchParams.transactionCategoryTags !== null;
+
+		return (
+			touchedTerm() ||
+			touchedTags() ||
+			touchedDate() ||
+			touchedTransactionCategoryTag() ||
+			touchedTransactionModeTag()
+		);
+	}
+
+	let searchInputValue = $state(searchParams.term);
+
+	let filteredTransactions = $derived.by(() => {
+		const minDate = searchParams.date.startOf('month');
+
+		if (!checkTouchedSearchParams()) {
+			return $transactions.data.transactions.filter((item) => {
+				const matchesDate = transactionFilters.matchesDate(item, minDate);
+
+				return matchesDate;
+			});
+		}
+
+		const term = searchParams.term.toLowerCase().trim();
+
+		return $transactions.data.transactions.filter((item) => {
+			const matchesTags = () => transactionFilters.matchesTags(item, searchParams.tags);
+			const matchesTerm = () => transactionFilters.matchesTerm(item, term);
+			const matchesTransactionMode = () =>
+				transactionFilters.matchesModeTags(item, searchParams.transactionModeTags);
+			const matchesTransactionCategory = () =>
+				transactionFilters.matchesCategoryTags(item, searchParams.transactionCategoryTags);
+			const matchesDate = () => transactionFilters.matchesDate(item, minDate);
+
+			return (
+				matchesTags() &&
+				matchesTerm() &&
+				matchesDate() &&
+				matchesTransactionMode() &&
+				matchesTransactionCategory
+			);
+		});
+	});
+
+	let bill = $derived.by(() => {
+		return filteredTransactions.reduce((acc, transaction) => {
+			if (!checkPaymentIsConfirmed(transaction)) {
+				return acc;
+			}
+
+			const value = transaction.category === 'EXPENSE' ? -transaction.value : transaction.value;
+
+			return acc + value;
+		}, 0);
+	});
+
+	function toggleTag(tag: string) {
+		if (searchParams.tags.has(tag)) {
+			searchParams.tags.delete(tag);
+		} else {
+			searchParams.tags.add(tag);
+		}
+	}
+
+	function toggleTransactionModeTag(tag: Entities.TransactionMode) {
+		if (searchParams.transactionModeTags.has(tag)) {
+			searchParams.transactionModeTags.delete(tag);
+		} else {
+			searchParams.transactionModeTags.add(tag);
+		}
+	}
+
+	function toggleTransactionCategoryTag(tag: Entities.TransactionCategory) {
+		if (searchParams.transactionCategoryTags.has(tag)) {
+			searchParams.transactionCategoryTags.delete(tag);
+		} else {
+			searchParams.transactionCategoryTags.add(tag);
+		}
+	}
+
+	function checkPaymentIsConfirmed(transaction: (typeof $transactions.data.transactions)[0]) {
+		const lastPayment = transaction.paymentConfirmations.at(0);
+
+		if (!lastPayment) {
+			return false;
+		}
+
+		const paidAt = dates.utc(lastPayment.paidAt);
+
+		const isSameMonth = paidAt.isSame(searchParams.date, 'month');
+		const isAfterMonth = paidAt.isAfter(searchParams.date, 'month');
+
+		return isSameMonth || isAfterMonth;
+	}
+
+	$effect(() => {
+		const params = new URLSearchParams();
+
+		if (searchParams.term) {
+			params.set('term', searchParams.term);
+		}
+
+		if (searchParams.tags.size > 0) {
+			params.set('tags', Array.from(searchParams.tags).join(','));
+		}
+
+		if (!searchParams.date.isSame(nextMonth, 'month')) {
+			params.set('date', searchParams.date.startOf('month').format('YYYY-MM-DD'));
+		}
+
+		if (searchParams.transactionModeTags.size > 0) {
+			params.set('transactionModeTags', Array.from(searchParams.transactionModeTags).join(','));
+		}
+
+		if (searchParams.transactionCategoryTags.size > 0) {
+			params.set(
+				'transactionCategoryTags',
+				Array.from(searchParams.transactionCategoryTags).join(',')
+			);
+		}
+
+		goto(`?${params.toString()}`, {
+			keepFocus: true
+		});
+	});
+</script>
+
+<MetaTags title="Transações" />
+
+<div class="p-4">
+	<div class="flex items-baseline gap-2">
+		<h2 class="text-2xl">Saldo</h2>
+		<small>
+			({searchParams.date.format('MM/YYYY')})
+		</small>
+	</div>
+
+	<span class="text-4xl font-extrabold">
+		{formatCurrency(bill)}
+	</span>
+
+	<Separator class="my-4" />
+
+	<div class="flex items-center justify-between">
+		<div>
+			<h2 class="text-2xl">Transações</h2>
+			<span class="text-sm">
+				do mês
+				{searchParams.date.format('MM/YYYY')}
+			</span>
+		</div>
+
+		<div class="flex gap-2">
+			<Button variant="outline" class="size-12 rounded-full">
+				<CopyIcon class="!size-6" />
+				<span class="sr-only"> Copiar transações </span>
+			</Button>
+
+			<Popover.Root>
+				<Popover.Trigger class={cn(buttonVariants({ variant: 'outline' }), 'size-12 rounded-full')}>
+					<CalendarIcon class="!size-6" />
+					<span class="sr-only"> Filtrar por mês </span>
+				</Popover.Trigger>
+
+				<Popover.Content align="end" side="bottom" class="w-auto p-0">
+					<MonthCalendar
+						minValue={dayjsToCalendarDate(nextMonth.subtract(1, 'month'))}
+						value={dayjsToCalendarDate(searchParams.date)}
+						onValueChange={(value) => {
+							if (!value) return;
+
+							searchParams.date = calendarDateToDayjs(value);
+						}}
+					/>
+				</Popover.Content>
+			</Popover.Root>
+		</div>
+	</div>
+
+	<form
+		onsubmit={(e) => {
+			e.preventDefault();
+			searchParams.term = searchInputValue;
+		}}
+		class="mt-4 flex gap-2"
+	>
+		<div class="relative w-full">
+			<Input
+				name="term"
+				bind:value={searchInputValue}
+				class="pr-8"
+				type="text"
+				placeholder="Pesquise por nome"
+			/>
+
+			{#if searchInputValue}
+				<Button
+					type="button"
+					variant="ghost"
+					size="icon"
+					class="group absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+					onclick={() => {
+						searchParams.term = '';
+						searchInputValue = '';
+					}}
+					aria-label="Limpar pesquisa"
+				>
+					<XIcon
+						class="size-4 text-muted-foreground transition-colors group-hover:text-foreground"
+					/>
+				</Button>
+			{/if}
+		</div>
+
+		<Button type="submit">
+			<SearchIcon />
+			<span class="hidden sm:inline"> Buscar </span>
+		</Button>
+	</form>
+
+	<div class="mt-4 flex flex-wrap gap-2">
+		<Popover.Root>
+			<Popover.Trigger>
+				{#snippet child({ props })}
+					<button {...props} class={cn(chipVariants({ variant: 'outline' }))}>
+						+ Adicionar filtro
+					</button>
+				{/snippet}
+			</Popover.Trigger>
+			<Popover.Content side="bottom" align="start" class="w-[180px] p-0">
+				<Command.Root>
+					<Command.Input class="h-8" placeholder="Buscar filtros..." />
+					<Command.List>
+						<Command.Empty class="py-4">
+							Nenhum filtro
+							<br />
+							encontrada.
+						</Command.Empty>
+
+						<Command.Group heading="Tipos de transação">
+							{#each TRANSACTION_MODES as transactionMode}
+								<Command.Item
+									value={transactionMode}
+									onSelect={() => toggleTransactionModeTag(transactionMode)}
+									class="flex items-center justify-between break-all"
+								>
+									{getTransactionModeLabel(transactionMode)}
+
+									{#if searchParams.transactionModeTags.has(transactionMode)}
+										<CheckIcon />
+									{/if}
+								</Command.Item>
+							{/each}
+
+							{#each TRANSACTION_CATEGORIES as transactionCategory}
+								<Command.Item
+									value={transactionCategory}
+									onSelect={() => toggleTransactionCategoryTag(transactionCategory)}
+									class="flex items-center justify-between break-all"
+								>
+									{getTransactionCategoryLabel(transactionCategory)}
+
+									{#if searchParams.transactionCategoryTags.has(transactionCategory)}
+										<CheckIcon />
+									{/if}
+								</Command.Item>
+							{/each}
+						</Command.Group>
+
+						<Command.Separator />
+
+						{#if data.availableTags.size > 0}
+							<Command.Group heading="Tags">
+								{#each data.availableTags as tag}
+									<Command.Item
+										value={tag}
+										onSelect={() => toggleTag(tag)}
+										class="flex items-center justify-between break-all"
+									>
+										{tag}
+
+										{#if searchParams.tags.has(tag)}
+											<CheckIcon />
+										{/if}
+									</Command.Item>
+								{/each}
+							</Command.Group>
+						{/if}
+					</Command.List>
+				</Command.Root>
+			</Popover.Content>
+		</Popover.Root>
+
+		{#each searchParams.tags as tag (tag)}
+			<button
+				animate:flip={{
+					duration: 150
+				}}
+				transition:scale={{
+					duration: 150
+				}}
+				class={cn(badgeVariants())}
+				onclick={() => toggleTag(tag)}
+			>
+				{tag}
+			</button>
+		{/each}
+	</div>
+
+	<Separator class="my-4" />
+
+	<ul class="space-y-4">
+		{#each filteredTransactions as transaction (transaction.id)}
+			{@const paymentIsConfirmed = checkPaymentIsConfirmed(transaction)}
+			{@const paidInstallments =
+				getDatesDiffInMonths(transaction.firstInstallmentAt, searchParams.date.toDate()) +
+				(paymentIsConfirmed ? 1 : 0)}
+
+			<li>
+				<Card.Root class="w-full max-w-lg">
+					<Card.Header class="p-4 pb-3">
+						<div class="flex items-start justify-between">
+							<Card.Title class="max-w-[calc(100%-5rem)] break-words break-all pr-2">
+								<a href="/app/transactions/{transaction.id}">
+									{transaction.name}
+								</a>
+							</Card.Title>
+
+							<div class="flex items-center gap-2">
+								<form
+									method="post"
+									action="/app/transactions/{transaction.id}?/confirmPayment"
+									use:enhance={() => {
+										return ({ result }) => {
+											if (result.type !== 'success') {
+												return;
+											}
+
+											if (result.data?.status === 'created') {
+												transactions.setLastPaymentConfirmation(
+													transaction.id,
+													searchParams.date.toDate()
+												);
+											}
+
+											if (result.data?.status === 'deleted') {
+												transactions.setLastPaymentConfirmation(transaction.id, null);
+											}
+										};
+									}}
+								>
+									<input
+										type="hidden"
+										name="paymentDate"
+										value={searchParams.date.format('YYYY-MM-DD')}
+									/>
+
+									<button
+										class={cn(
+											buttonVariants({ variant: 'ghost' }),
+											'size-8 p-0',
+											paymentIsConfirmed && 'text-green-800 hover:text-green-800'
+										)}
+										type="submit"
+									>
+										{#if paymentIsConfirmed}
+											<span class="sr-only">
+												{transaction.category === 'EXPENSE'
+													? 'Marcar como não pago'
+													: 'Marcar como não recebido'}
+											</span>
+											<SquareCheckIcon />
+										{:else}
+											<span class="sr-only">
+												{transaction.category === 'EXPENSE'
+													? 'Marcar como pago'
+													: 'Marcar como recebido'}
+											</span>
+											<SquareIcon />
+										{/if}
+									</button>
+								</form>
+
+								<DropdownMenu.Root>
+									<DropdownMenu.Trigger
+										class={cn(buttonVariants({ variant: 'ghost' }), 'size-8 p-0')}
+									>
+										<span class="sr-only"> Opções </span>
+										<EllipsisVerticalIcon />
+									</DropdownMenu.Trigger>
+
+									<DropdownMenu.Content align="end" side="bottom">
+										<DropdownMenu.Group>
+											<DropdownMenu.Item class="cursor-pointer">
+												{#snippet child({ props })}
+													<a href="/app/transactions/{transaction.id}" {...props}>
+														<EditIcon class="mr-2 size-4" />
+														<span>Editar transação</span>
+													</a>
+												{/snippet}
+											</DropdownMenu.Item>
+
+											<DropdownMenu.Separator />
+
+											<DropdownMenu.Item
+												class="w-full cursor-pointer text-destructive data-[highlighted]:text-destructive"
+											>
+												{#snippet child({ props })}
+													<form
+														method="post"
+														action="/app/transactions/{transaction.id}?/delete"
+														use:enhance
+													>
+														<button {...props} type="submit">
+															<TrashIcon class="mr-2 size-4" />
+															<span>Excluir transação</span>
+														</button>
+													</form>
+												{/snippet}
+											</DropdownMenu.Item>
+										</DropdownMenu.Group>
+									</DropdownMenu.Content>
+								</DropdownMenu.Root>
+							</div>
+						</div>
+					</Card.Header>
+
+					<Card.Content class="p-4 pt-0">
+						<div class="flex items-center justify-between gap-2">
+							<div>
+								<span class="text-xl font-bold">
+									{formatCurrency(transaction.value)}
+								</span>
+							</div>
+
+							<div>
+								<button
+									class={cn(
+										badgeVariants({
+											variant: searchParams.transactionModeTags.has(transaction.mode)
+												? 'default'
+												: 'outline'
+										})
+									)}
+									onclick={() => toggleTransactionModeTag(transaction.mode)}
+								>
+									{getTransactionModeLabel(transaction.mode)}
+								</button>
+							</div>
+						</div>
+
+						{#if transaction.mode === 'IN_INSTALLMENTS'}
+							<div class="mt-2 flex justify-between">
+								<span class="text-sm text-muted-foreground">
+									Total:
+									{formatCurrency(transaction.value * transaction.numberOfInstallments)}
+								</span>
+
+								<span
+									class={cn(
+										'flex items-center gap-1 text-sm',
+										paidInstallments === transaction.numberOfInstallments
+											? 'text-green-800'
+											: 'text-muted-foreground'
+									)}
+								>
+									{#if paidInstallments === transaction.numberOfInstallments}
+										<CheckIcon class="!size-3.5" />
+									{/if}
+
+									{#if paidInstallments === 0}
+										Nenhuma parcela paga
+									{:else}
+										{paidInstallments} de {transaction.numberOfInstallments} parcelas
+									{/if}
+								</span>
+							</div>
+						{/if}
+
+						<Separator class="my-4" />
+
+						<div class="grid grid-cols-2 gap-2 text-sm">
+							<span class="text-muted-foreground">Data da compra:</span>
+							<span class="text-end">
+								{dates.utc(transaction.purchasedAt).format('DD/MM/YYYY')}
+							</span>
+
+							{#if transaction.mode === 'IN_INSTALLMENTS'}
+								<span class="text-muted-foreground">Primeira parcela:</span>
+								<span class="text-end">
+									{dates.utc(transaction.firstInstallmentAt).format('MM/YYYY')}
+								</span>
+
+								{#if transaction.numberOfInstallments !== paidInstallments}
+									<span class="text-muted-foreground">Última parcela:</span>
+									<span class="text-end">
+										{dates.utc(transaction.lastInstallmentAt).format('MM/YYYY')}
+									</span>
+
+									<span class="text-muted-foreground">Valor total pago:</span>
+									<span class="text-end">
+										{formatCurrency(transaction.value * paidInstallments)}
+									</span>
+
+									<span class="text-muted-foreground">Valor restante:</span>
+									<span class="text-end">
+										{formatCurrency(
+											transaction.value * (transaction.numberOfInstallments - paidInstallments)
+										)}
+									</span>
+								{/if}
+							{:else if transaction.mode === 'SINGLE_PAYMENT'}
+								<span class="text-muted-foreground">Data de pagamento:</span>
+								<span class="text-end">
+									{dates.utc(transaction.firstInstallmentAt).format('MM/YYYY')}
+								</span>
+							{/if}
+						</div>
+					</Card.Content>
+
+					{#if transaction.tags.size > 0}
+						<Card.Footer class="block p-4 pt-0">
+							<Separator class="mb-2.5" />
+
+							<div class="flex flex-wrap items-center gap-2">
+								<span class="mb-0.5"> Tags: </span>
+								{#each transaction.tags as tag}
+									{@const isSelected = searchParams.tags.has(tag)}
+
+									<button
+										class={cn(
+											badgeVariants({
+												variant: isSelected ? 'default' : 'outline'
+											})
+										)}
+										onclick={() => toggleTag(tag)}
+									>
+										{tag}
+									</button>
+								{/each}
+							</div>
+						</Card.Footer>
+					{/if}
+				</Card.Root>
+			</li>
+		{/each}
+	</ul>
+</div>
+
+<div>
+	<div class="mt-12"></div>
+	<div class="floating-button-container">
+		<Button href="/app/transactions/new" class="size-12 rounded-full">
+			<PlusIcon class="!size-6" />
+		</Button>
+	</div>
+</div>
+
+<style lang="postcss">
+	.floating-button-container {
+		@apply fixed bottom-4;
+		right: calc(1rem + var(--scrollbar-width, 0px));
+	}
+</style>

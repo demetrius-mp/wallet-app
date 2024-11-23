@@ -197,7 +197,9 @@ export const actions = {
 				}
 			});
 
-			return;
+			return {
+				status: 'created'
+			};
 		}
 
 		const lastPaymentDate = dates.utc(paymentHistory.paidAt).startOf('month');
@@ -209,7 +211,9 @@ export const actions = {
 				}
 			});
 
-			return;
+			return {
+				status: 'deleted'
+			};
 		}
 	}
 } satisfies Actions;

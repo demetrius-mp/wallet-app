@@ -1,34 +1,48 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
-import { parse } from 'devalue';
-import { superValidate } from 'sveltekit-superforms';
-import { zod } from 'sveltekit-superforms/adapters';
-import type { z } from 'zod';
 
-import { formDataToCreateDBTransaction } from '$lib/models/transaction';
-import { TransactionSchema } from '$lib/schemas';
 import { prisma } from '$lib/server/prisma';
+import { dates } from '$lib/utils/dates';
 
-export const POST: RequestHandler = async (e) => {
-	const body = parse(await e.request.text()) as z.infer<typeof TransactionSchema>;
+export const GET: RequestHandler = async (_e) => {
+	const thisMonth = dates
+		.tz(new Date(), 'America/Campo_Grande')
+		.utc(true)
+		.startOf('month')
+		.toDate();
 
-	const form = await superValidate(body, zod(TransactionSchema));
-
-	if (!form.valid) {
-		return json(
-			{ form },
-			{
-				status: 400
+	const transactions = await prisma.transaction.findMany({
+		include: {
+			paymentConfirmations: {
+				select: {
+					paidAt: true
+				},
+				orderBy: {
+					paidAt: 'desc'
+				},
+				take: 1
 			}
-		);
-	}
-
-	const data = formDataToCreateDBTransaction(form.data);
-
-	const transaction = await prisma.transaction.create({
-		data
+		},
+		where: {
+			OR: [
+				{
+					lastInstallmentAt: {
+						gte: thisMonth
+					}
+				},
+				{
+					lastInstallmentAt: null
+				}
+			]
+		},
+		orderBy: [
+			{
+				purchasedAt: 'desc'
+			},
+			{
+				name: 'asc'
+			}
+		]
 	});
 
-	return json({
-		transaction
-	});
+	return json({ transactions });
 };

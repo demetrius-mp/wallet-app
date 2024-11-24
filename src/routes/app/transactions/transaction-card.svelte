@@ -8,8 +8,7 @@
 	import TrashIcon from 'lucide-svelte/icons/trash';
 	import { toast } from 'svelte-sonner';
 
-	import { applyAction, enhance } from '$app/forms';
-	import { invalidateAll } from '$app/navigation';
+	import { enhance } from '$app/forms';
 	import { checkPaymentIsConfirmed, getTransactionModeLabel } from '$lib/models/transaction';
 	import { badgeVariants } from '$lib/shadcn/ui/badge';
 	import { buttonVariants } from '$lib/shadcn/ui/button';
@@ -57,15 +56,14 @@
 					method="post"
 					action="/app/transactions/{transaction.id}/toggle-payment-confirmation"
 					use:enhance={() => {
-						return async ({ result }) => {
+						return async ({ result, update }) => {
 							if (result.type === 'success' && result.data) {
 								toast.success(result.data.message as string);
 							} else if (result.type === 'failure' && result.data) {
 								toast.error(result.data.message as string);
 							}
 
-							await applyAction(result);
-							await invalidateAll();
+							await update();
 						};
 					}}
 				>

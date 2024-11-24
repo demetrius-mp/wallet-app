@@ -280,6 +280,20 @@ export const actions = {
 				};
 			}
 
+			// user is trying to remove a payment confirmation that is not the last one
+			if (paymentDate.isBefore(lastPaymentConfirmationAt)) {
+				return kitFail(400, {
+					message: 'Não é possivel remover confirmações de pagamento anteriores.'
+				});
+			}
+
+			// user is trying to confirm a payment that is not subsequent to the last payment confirmation
+			if (paymentDate.isAfter(lastPaymentConfirmationAt.add(1, 'month'))) {
+				return kitFail(400, {
+					message: 'Não é possivel confirmar pagamentos posteriores.'
+				});
+			}
+
 			return kitFail(400, {
 				message: 'Requisição inválida'
 			});
@@ -346,6 +360,20 @@ export const actions = {
 				return {
 					message: 'Pagamento confirmado com sucesso'
 				};
+			}
+
+			// user is trying to remove a payment confirmation that is not the last one
+			if (paymentDate.isBefore(lastPaymentConfirmationAt)) {
+				return kitFail(400, {
+					message: 'Não é possivel remover confirmações de pagamento anteriores.'
+				});
+			}
+
+			// user is trying to confirm a payment that is not subsequent to the last payment confirmation
+			if (paymentDate.isAfter(lastPaymentConfirmationAt.add(1, 'month'))) {
+				return kitFail(400, {
+					message: 'Não é possivel confirmar pagamentos posteriores.'
+				});
 			}
 
 			return kitFail(400, {

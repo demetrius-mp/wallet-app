@@ -206,3 +206,29 @@ export function getBill(transactions: Entities.Transaction[], date: Dayjs) {
 		return acc + value;
 	}, 0);
 }
+
+export function filterTransactions(
+	transactions: Entities.Transaction[],
+	filters: Entities.TransactionFilters
+) {
+	const term = filters.term.toLowerCase().trim();
+	const date = filters.date.startOf('month');
+
+	return transactions.filter((item) => {
+		const matchesTags = () => transactionFilters.matchesTags(item, filters.tags);
+		const matchesTerm = () => transactionFilters.matchesTerm(item, term);
+		const matchesTransactionMode = () =>
+			transactionFilters.matchesModeTags(item, filters.transactionModeTags);
+		const matchesTransactionCategory = () =>
+			transactionFilters.matchesCategoryTags(item, filters.transactionCategoryTags);
+		const matchesDate = () => transactionFilters.matchesDate(item, date);
+
+		return (
+			matchesTerm() &&
+			matchesDate() &&
+			matchesTransactionMode() &&
+			matchesTransactionCategory() &&
+			matchesTags()
+		);
+	});
+}

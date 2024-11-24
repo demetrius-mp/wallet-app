@@ -6,7 +6,7 @@
 	import { goto } from '$app/navigation';
 	import FloatingButton from '$lib/components/floating-button.svelte';
 	import MetaTags from '$lib/components/meta-tags.svelte';
-	import { getBill, transactionFilters } from '$lib/models/transaction';
+	import { filterTransactions, getBill } from '$lib/models/transaction';
 	import Button from '$lib/shadcn/ui/button/button.svelte';
 	import Separator from '$lib/shadcn/ui/separator/separator.svelte';
 	import type { Entities } from '$lib/types.js';
@@ -37,54 +37,7 @@
 		transactionCategoryTags: new SvelteSet(data.searchParams.transactionCategoryTags)
 	});
 
-	function checkTouchedSearchParams() {
-		const touchedTerm = () => searchParams.term !== '';
-		const touchedTags = () => searchParams.tags.size > 0;
-		const touchedDate = () => !searchParams.date.isSame(nextMonth);
-		const touchedTransactionModeTag = () => searchParams.transactionModeTags !== null;
-		const touchedTransactionCategoryTag = () => searchParams.transactionCategoryTags !== null;
-
-		return (
-			touchedTerm() ||
-			touchedTags() ||
-			touchedDate() ||
-			touchedTransactionCategoryTag() ||
-			touchedTransactionModeTag()
-		);
-	}
-
-	let filteredTransactions = $derived.by(() => {
-		const minDate = searchParams.date.startOf('month');
-
-		if (!checkTouchedSearchParams()) {
-			return data.transactions.filter((item) => {
-				const matchesDate = transactionFilters.matchesDate(item, minDate);
-
-				return matchesDate;
-			});
-		}
-
-		const term = searchParams.term.toLowerCase().trim();
-
-		return data.transactions.filter((item) => {
-			const matchesTags = () => transactionFilters.matchesTags(item, searchParams.tags);
-			const matchesTerm = () => transactionFilters.matchesTerm(item, term);
-			const matchesTransactionMode = () =>
-				transactionFilters.matchesModeTags(item, searchParams.transactionModeTags);
-			const matchesTransactionCategory = () =>
-				transactionFilters.matchesCategoryTags(item, searchParams.transactionCategoryTags);
-			const matchesDate = () => transactionFilters.matchesDate(item, minDate);
-
-			return (
-				matchesTags() &&
-				matchesTerm() &&
-				matchesDate() &&
-				matchesTransactionMode() &&
-				matchesTransactionCategory
-			);
-		});
-	});
-
+	let filteredTransactions = $derived(filterTransactions(data.transactions, searchParams));
 	let bill = $derived(getBill(filteredTransactions, searchParams.date));
 
 	function toggleTag(tag: string) {

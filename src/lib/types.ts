@@ -1,3 +1,5 @@
+import type { Dayjs } from 'dayjs';
+
 import type { TRANSACTION_CATEGORIES, TRANSACTION_MODES } from '$lib/models/transaction';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -38,4 +40,12 @@ export namespace Entities {
 		| RecurrentTransaction
 		| SinglePaymentTransaction
 		| InInstallmentsTransaction;
+
+	export type TransactionFilters = {
+		term: string;
+		tags: Set<string>;
+		date: Dayjs;
+		transactionModeTags: Set<Entities.TransactionMode>;
+		transactionCategoryTags: Set<Entities.TransactionCategory>;
+	};
 }

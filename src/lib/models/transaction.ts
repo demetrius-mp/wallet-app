@@ -9,7 +9,7 @@ export const TRANSACTION_MODES = ['RECURRENT', 'SINGLE_PAYMENT', 'IN_INSTALLMENT
 export const TRANSACTION_CATEGORIES = ['INCOME', 'EXPENSE'] as const;
 
 function convertRecurrentTransaction(
-	transaction: Transaction & { paymentConfirmations: { paidAt: Date }[] }
+	transaction: Transaction & { paymentConfirmations: { id: number; paidAt: Date }[] }
 ): Entities.RecurrentTransaction {
 	return {
 		id: transaction.id,
@@ -25,7 +25,7 @@ function convertRecurrentTransaction(
 }
 
 function convertSinglePaymentTransaction(
-	transaction: Transaction & { paymentConfirmations: { paidAt: Date }[] }
+	transaction: Transaction & { paymentConfirmations: { id: number; paidAt: Date }[] }
 ): Entities.SinglePaymentTransaction {
 	if (transaction.numberOfInstallments !== 1 || transaction.lastInstallmentAt === null) {
 		throw new Error('Invalid Single Payment Transaction');
@@ -47,7 +47,7 @@ function convertSinglePaymentTransaction(
 }
 
 function convertInInstallmentsTransaction(
-	transaction: Transaction & { paymentConfirmations: { paidAt: Date }[] }
+	transaction: Transaction & { paymentConfirmations: { id: number; paidAt: Date }[] }
 ): Entities.InInstallmentsTransaction {
 	if (transaction.numberOfInstallments === null || transaction.lastInstallmentAt === null) {
 		throw new Error('Invalid In Installments Transaction');
@@ -69,7 +69,7 @@ function convertInInstallmentsTransaction(
 }
 
 export function convertTransaction(
-	transaction: Transaction & { paymentConfirmations: { paidAt: Date }[] }
+	transaction: Transaction & { paymentConfirmations: { id: number; paidAt: Date }[] }
 ): Entities.Transaction {
 	switch (transaction.mode) {
 		case 'RECURRENT':

@@ -15,6 +15,7 @@ export const load = (async () => {
 			include: {
 				paymentConfirmations: {
 					select: {
+						id: true,
 						paidAt: true
 					},
 					orderBy: {

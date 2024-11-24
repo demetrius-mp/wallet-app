@@ -2,6 +2,7 @@ import { error, fail as kitFail } from '@sveltejs/kit';
 import { fail, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
+import { convertTransaction } from '$lib/models/transaction';
 import {
 	ConfirmPaymentSchema,
 	InInstallmentsTransactionSchema,
@@ -158,84 +159,194 @@ export const actions = {
 	async confirmPayment(e) {
 		const transactionId = parseInt(e.params.transactionId);
 
-		const transaction = await prisma.transaction.findFirst({
+		const dbTransaction = await prisma.transaction.findFirst({
 			where: {
 				id: transactionId
+			},
+			include: {
+				paymentConfirmations: {
+					select: {
+						id: true,
+						paidAt: true
+					},
+					orderBy: {
+						paidAt: 'desc'
+					},
+					take: 1
+				}
 			}
 		});
 
-		if (!transaction) {
+		if (!dbTransaction) {
 			error(404, { message: 'Transação não encontrada' });
 		}
+
+		const transaction = convertTransaction(dbTransaction);
 
 		const form = await superValidate(e, zod(ConfirmPaymentSchema));
 
 		if (!form.valid) {
-			return fail(400, { form });
+			return kitFail(400, {
+				message: 'Data de pagamento inválida'
+			});
 		}
 
 		const { data } = form;
 
 		const paymentDate = dates.utc(data.paymentDate, 'YYYY-MM-DD').startOf('month');
+		const lastPaymentConfirmation = transaction.paymentConfirmations.at(0);
+		const firstInstallmentAt = dates.utc(transaction.firstInstallmentAt).startOf('month');
 
-		const paymentHistory = await prisma.transactionPaymentConfirmation.findFirst({
-			where: {
-				transactionId
-			},
-			select: {
-				id: true,
-				paidAt: true
-			},
-			orderBy: {
-				paidAt: 'desc'
+		if (transaction.mode === 'SINGLE_PAYMENT') {
+			// transaction has no payment confirmation
+			if (!lastPaymentConfirmation) {
+				// so we set the payment confirmation as the first installment date
+				await prisma.transactionPaymentConfirmation.create({
+					data: {
+						transactionId,
+						paidAt: transaction.firstInstallmentAt
+					}
+				});
+
+				return {
+					message: 'Pagamento confirmado com sucesso'
+				};
 			}
-		});
 
-		if (!paymentHistory) {
-			await prisma.transactionPaymentConfirmation.create({
-				data: {
-					transactionId,
-					paidAt: paymentDate.toDate()
-				}
-			});
-
-			return {
-				status: 'created'
-			};
-		}
-
-		const lastPaymentDate = dates.utc(paymentHistory.paidAt).startOf('month');
-
-		if (lastPaymentDate.add(1, 'month').isSame(paymentDate)) {
-			await prisma.transactionPaymentConfirmation.create({
-				data: {
-					transactionId,
-					paidAt: paymentDate.toDate()
-				}
-			});
-
-			return {
-				status: 'created'
-			};
-		}
-
-		if (paymentDate.isBefore(lastPaymentDate, 'month')) {
-			return kitFail(400, {
-				message:
-					'Você não pode confirmar um pagamento de uma data anterior a um pagamento já confirmado'
-			});
-		}
-
-		if (paymentDate.isSame(lastPaymentDate, 'month')) {
-			await prisma.transactionPaymentConfirmation.delete({
+			// if the transaction has payment confirmations
+			// we remove every confirmation
+			await prisma.transactionPaymentConfirmation.deleteMany({
 				where: {
-					id: paymentHistory.id
+					transactionId: transaction.id
 				}
 			});
 
 			return {
-				status: 'deleted'
+				message: 'Pagamento removido com sucesso'
 			};
+		}
+
+		if (transaction.mode === 'RECURRENT') {
+			// first confirmation of this recurrent transaction
+			if (!lastPaymentConfirmation) {
+				// the first payment confirmation must be the same as the first installment
+				if (!paymentDate.isSame(firstInstallmentAt)) {
+					return kitFail(400, {
+						message: 'Data de pagamento deve ser igual a data da primeira ocorrência'
+					});
+				}
+
+				await prisma.transactionPaymentConfirmation.create({
+					data: {
+						transactionId: transaction.id,
+						paidAt: transaction.firstInstallmentAt
+					}
+				});
+
+				return {
+					message: 'Pagamento confirmado com sucesso'
+				};
+			}
+
+			const lastPaymentConfirmationAt = dates.utc(lastPaymentConfirmation.paidAt).startOf('month');
+
+			// can only remove the last payment confirmation
+			if (lastPaymentConfirmationAt.isSame(paymentDate)) {
+				await prisma.transactionPaymentConfirmation.delete({
+					where: {
+						transactionId: transaction.id,
+						id: lastPaymentConfirmation.id
+					}
+				});
+
+				return {
+					message: 'Pagamento removido com sucesso'
+				};
+			}
+
+			// can only confirm payments that are subsequent to the last payment confirmation
+			if (paymentDate.isSame(lastPaymentConfirmationAt.add(1, 'month'))) {
+				await prisma.transactionPaymentConfirmation.create({
+					data: {
+						transactionId: transaction.id,
+						paidAt: paymentDate.toDate()
+					}
+				});
+
+				return {
+					message: 'Pagamento confirmado com sucesso'
+				};
+			}
+
+			return kitFail(400, {
+				message: 'Requisição inválida'
+			});
+		}
+
+		if (transaction.mode === 'IN_INSTALLMENTS') {
+			// first confirmation of this installments transaction
+			if (!lastPaymentConfirmation) {
+				// the first payment confirmation must be the same as the first installment
+				if (!paymentDate.isSame(firstInstallmentAt)) {
+					return kitFail(400, {
+						message: 'Data de pagamento deve ser igual a data da primeira ocorrência'
+					});
+				}
+
+				await prisma.transactionPaymentConfirmation.create({
+					data: {
+						transactionId: transaction.id,
+						paidAt: transaction.firstInstallmentAt
+					}
+				});
+
+				return {
+					message: 'Pagamento confirmado com sucesso'
+				};
+			}
+
+			const lastPaymentConfirmationAt = dates.utc(lastPaymentConfirmation.paidAt).startOf('month');
+
+			// can only remove the last payment confirmation
+			if (lastPaymentConfirmationAt.isSame(paymentDate)) {
+				await prisma.transactionPaymentConfirmation.delete({
+					where: {
+						transactionId: transaction.id,
+						id: lastPaymentConfirmation.id
+					}
+				});
+
+				return {
+					message: 'Pagamento removido com sucesso'
+				};
+			}
+
+			const lastInstallmentAt = dates.utc(transaction.lastInstallmentAt).startOf('month');
+			const nextAvailableConfirmation = lastPaymentConfirmationAt.add(1, 'month');
+
+			if (
+				// if the payment date is the last payment + 1 month
+				paymentDate.isSame(nextAvailableConfirmation) &&
+				// and the last payment + 1 month is not after the last installment
+				// EXAMPLE: it doesnt make sense to confirm a payment at 12/2024 if the last intallment is
+				// at 11/2024
+				!nextAvailableConfirmation.isAfter(lastInstallmentAt)
+			) {
+				await prisma.transactionPaymentConfirmation.create({
+					data: {
+						transactionId: transaction.id,
+						paidAt: paymentDate.toDate()
+					}
+				});
+
+				return {
+					message: 'Pagamento confirmado com sucesso'
+				};
+			}
+
+			return kitFail(400, {
+				message: 'Requisição inválida'
+			});
 		}
 	}
 } satisfies Actions;

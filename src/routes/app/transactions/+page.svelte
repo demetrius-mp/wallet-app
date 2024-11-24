@@ -406,11 +406,10 @@
 									action="/app/transactions/{transaction.id}?/confirmPayment"
 									use:enhance={() => {
 										return async ({ result }) => {
-											if (result.type === 'failure' && result.data) {
-												const message = result.data.message as string;
-												toast.error(message);
-											} else if (result.type === 'success' && result.data) {
-												toast.success('Pagamento confirmado');
+											if (result.type === 'success' && result.data) {
+												toast.success(result.data.message as string);
+											} else if (result.type === 'failure' && result.data) {
+												toast.error(result.data.message as string);
 											}
 
 											await applyAction(result);

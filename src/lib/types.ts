@@ -6,6 +6,7 @@ export namespace Entities {
 	export type TransactionCategory = (typeof TRANSACTION_CATEGORIES)[number];
 
 	type PaymentConfirmation = {
+		id: number;
 		paidAt: Date;
 	};
 

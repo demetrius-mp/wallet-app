@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { shortcut } from '@svelte-put/shortcut';
 	import type { Dayjs } from 'dayjs';
 	import PlusIcon from 'lucide-svelte/icons/plus';
 	import { SvelteSet } from 'svelte/reactivity';
@@ -28,6 +29,7 @@
 	};
 
 	const initialDate = dates(data.searchParams.date, 'YYYY-MM-DD').utc(true);
+	const minDate = dates(data.searchParams.date, 'YYYY-MM-DD').utc(true).subtract(1, 'month');
 
 	let searchParams = $state<SearchParams>({
 		term: data.searchParams.term,
@@ -94,7 +96,36 @@
 			keepFocus: true
 		});
 	});
+
+	function handleNextMonthShortcut() {
+		searchParams.date = searchParams.date.add(1, 'month');
+	}
+
+	function handlePreviousMonthShortcut() {
+		if (searchParams.date.isSame(minDate, 'month')) return;
+
+		searchParams.date = searchParams.date.subtract(1, 'month');
+	}
 </script>
+
+<svelte:document
+	use:shortcut={{
+		trigger: {
+			key: 'l',
+			modifier: ['ctrl', 'meta'],
+			preventDefault: true,
+			callback: handleNextMonthShortcut
+		}
+	}}
+	use:shortcut={{
+		trigger: {
+			key: 'j',
+			modifier: ['ctrl', 'meta'],
+			preventDefault: true,
+			callback: handlePreviousMonthShortcut
+		}
+	}}
+/>
 
 <MetaTags title="Transações" />
 

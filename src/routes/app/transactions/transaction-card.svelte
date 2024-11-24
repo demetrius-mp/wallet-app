@@ -55,7 +55,7 @@
 			<div class="flex items-center gap-2">
 				<form
 					method="post"
-					action="/app/transactions/{transaction.id}?/confirmPayment"
+					action="/app/transactions/{transaction.id}/toggle-payment-confirmation"
 					use:enhance={() => {
 						return async ({ result }) => {
 							if (result.type === 'success' && result.data) {
@@ -120,7 +120,7 @@
 								{#snippet child({ props })}
 									<form
 										method="post"
-										action="/app/transactions/{transaction.id}?/delete"
+										action="/app/transactions/{transaction.id}/delete"
 										use:enhance
 									>
 										<button {...props} type="submit">

@@ -378,9 +378,6 @@
 	<ul class="space-y-4">
 		{#each filteredTransactions as transaction (transaction.id)}
 			{@const paymentIsConfirmed = checkPaymentIsConfirmed(transaction)}
-			<!-- {@const paidInstallments =
-				getDatesDiffInMonths(transaction.firstInstallmentAt, searchParams.date.toDate()) +
-				(paymentIsConfirmed ? 1 : 0)} -->
 
 			<li>
 				<Card.Root class="w-full max-w-lg">
@@ -455,7 +452,7 @@
 												{#snippet child({ props })}
 													<a href="/app/transactions/{transaction.id}" {...props}>
 														<EditIcon class="mr-2 size-4" />
-														<span>Editar transação</span>
+														<span>Editar</span>
 													</a>
 												{/snippet}
 											</DropdownMenu.Item>
@@ -473,7 +470,7 @@
 													>
 														<button {...props} type="submit">
 															<TrashIcon class="mr-2 size-4" />
-															<span>Excluir transação</span>
+															<span>Excluir</span>
 														</button>
 													</form>
 												{/snippet}
@@ -540,7 +537,7 @@
 						<Separator class="my-4" />
 
 						<div class="grid grid-cols-2 gap-2 text-sm">
-							<span class="text-muted-foreground">Data da compra:</span>
+							<span class="text-muted-foreground">Data da transação:</span>
 							<span class="text-end">
 								{dates.utc(transaction.purchasedAt).format('DD/MM/YYYY')}
 							</span>
@@ -552,12 +549,25 @@
 								</span>
 
 								{#if transaction.numberOfInstallments !== transaction.paidInstallments}
-									<span class="text-muted-foreground">Última parcela:</span>
+									{#if transaction.lastPaymentConfirmationAt}
+										<span class="text-muted-foreground">Última confirmação:</span>
+										<span class="text-end">
+											{dates.utc(transaction.lastPaymentConfirmationAt).format('MM/YYYY')}
+										</span>
+									{/if}
+
+									<span class="text-muted-foreground">Finaliza em:</span>
 									<span class="text-end">
 										{dates.utc(transaction.lastInstallmentAt).format('MM/YYYY')}
 									</span>
 
-									<span class="text-muted-foreground">Valor total pago:</span>
+									<span class="text-muted-foreground">
+										{#if transaction.category === 'EXPENSE'}
+											Valor total pago:
+										{:else if transaction.category === 'INCOME'}
+											Valor total recebido
+										{/if}
+									</span>
 									<span class="text-end">
 										{formatCurrency(transaction.value * transaction.paidInstallments)}
 									</span>
@@ -571,7 +581,13 @@
 									</span>
 								{/if}
 							{:else if transaction.mode === 'SINGLE_PAYMENT'}
-								<span class="text-muted-foreground">Data de pagamento:</span>
+								<span class="text-muted-foreground">
+									{#if transaction.category === 'EXPENSE'}
+										Data de pagamento:
+									{:else if transaction.category === 'INCOME'}
+										Data de recebimento
+									{/if}
+								</span>
 								<span class="text-end">
 									{dates.utc(transaction.firstInstallmentAt).format('MM/YYYY')}
 								</span>

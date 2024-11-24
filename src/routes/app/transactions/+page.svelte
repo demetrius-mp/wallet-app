@@ -28,13 +28,15 @@
 		transactionCategoryTags: Set<Entities.TransactionCategory>;
 	};
 
-	const initialDate = dates(data.searchParams.date, 'YYYY-MM-DD').utc(true);
-	const minDate = dates(data.searchParams.date, 'YYYY-MM-DD').utc(true).subtract(1, 'month');
+	const currentMonth = dates(data.searchParams.currentMonth, 'YYYY-MM-DD').utc(true);
+	const minDate = dates(data.searchParams.currentMonth, 'YYYY-MM-DD')
+		.utc(true)
+		.subtract(1, 'month');
 
 	let searchParams = $state<SearchParams>({
 		term: data.searchParams.term,
 		tags: new SvelteSet(data.searchParams.tags),
-		date: initialDate,
+		date: dates(data.searchParams.date, 'YYYY-MM-DD').utc(true),
 		transactionModeTags: new SvelteSet(data.searchParams.transactionModeTags),
 		transactionCategoryTags: new SvelteSet(data.searchParams.transactionCategoryTags)
 	});
@@ -77,7 +79,7 @@
 			params.set('tags', Array.from(searchParams.tags).join(','));
 		}
 
-		if (!searchParams.date.isSame(initialDate, 'month')) {
+		if (!searchParams.date.isSame(currentMonth, 'month')) {
 			params.set('date', searchParams.date.startOf('month').format('YYYY-MM-DD'));
 		}
 
@@ -130,7 +132,7 @@
 <MetaTags title="Transações" />
 
 <div class="p-4">
-	<Heading {bill} bind:date={searchParams.date} {initialDate} />
+	<Heading {bill} bind:date={searchParams.date} minCalendarDate={minDate} />
 
 	<div class="mt-4">
 		<SearchBar bind:term={searchParams.term} />

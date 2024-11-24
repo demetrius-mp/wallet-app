@@ -14,10 +14,10 @@
 	type Props = {
 		date: Dayjs;
 		bill: number;
-		initialDate: Dayjs;
+		minCalendarDate: Dayjs;
 	};
 
-	let { date = $bindable(), bill, initialDate }: Props = $props();
+	let { date = $bindable(), bill, minCalendarDate }: Props = $props();
 </script>
 
 <div class="flex items-baseline gap-2">
@@ -56,7 +56,7 @@
 
 			<Popover.Content align="end" side="bottom" class="w-auto p-0">
 				<MonthCalendar
-					minValue={dayjsToCalendarDate(initialDate.subtract(1, 'month'))}
+					minValue={dayjsToCalendarDate(minCalendarDate)}
 					value={dayjsToCalendarDate(date)}
 					onValueChange={(value) => {
 						if (!value) return;

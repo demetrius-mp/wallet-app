@@ -194,7 +194,7 @@ export const actions = {
 		const { data } = form;
 
 		const paymentDate = dates.utc(data.paymentDate, 'YYYY-MM-DD').startOf('month');
-		const lastPaymentConfirmation = transaction.paymentConfirmations.at(0);
+		const lastPaymentConfirmation = transaction.lastPaymentConfirmationAt;
 		const firstInstallmentAt = dates.utc(transaction.firstInstallmentAt).startOf('month');
 
 		if (transaction.mode === 'SINGLE_PAYMENT') {
@@ -248,14 +248,16 @@ export const actions = {
 				};
 			}
 
-			const lastPaymentConfirmationAt = dates.utc(lastPaymentConfirmation.paidAt).startOf('month');
+			const lastPaymentConfirmationAt = dates.utc(lastPaymentConfirmation).startOf('month');
 
 			// can only remove the last payment confirmation
 			if (lastPaymentConfirmationAt.isSame(paymentDate)) {
 				await prisma.transactionPaymentConfirmation.delete({
 					where: {
-						transactionId: transaction.id,
-						id: lastPaymentConfirmation.id
+						transactionId_paidAt: {
+							paidAt: paymentDate.toDate(),
+							transactionId: transaction.id
+						}
 					}
 				});
 
@@ -305,14 +307,16 @@ export const actions = {
 				};
 			}
 
-			const lastPaymentConfirmationAt = dates.utc(lastPaymentConfirmation.paidAt).startOf('month');
+			const lastPaymentConfirmationAt = dates.utc(lastPaymentConfirmation).startOf('month');
 
 			// can only remove the last payment confirmation
 			if (lastPaymentConfirmationAt.isSame(paymentDate)) {
 				await prisma.transactionPaymentConfirmation.delete({
 					where: {
-						transactionId: transaction.id,
-						id: lastPaymentConfirmation.id
+						transactionId_paidAt: {
+							paidAt: paymentDate.toDate(),
+							transactionId: transaction.id
+						}
 					}
 				});
 

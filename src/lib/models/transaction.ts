@@ -2,7 +2,7 @@ import type { Transaction } from '@prisma/client';
 import type { Dayjs } from 'dayjs';
 
 import type { Entities } from '$lib/types';
-import { dates } from '$lib/utils/dates';
+import { dates, getDatesDiffInMonths } from '$lib/utils/dates';
 import { isSubsetOf } from '$lib/utils/set';
 
 export const TRANSACTION_MODES = ['RECURRENT', 'SINGLE_PAYMENT', 'IN_INSTALLMENTS'] as const;
@@ -11,6 +11,8 @@ export const TRANSACTION_CATEGORIES = ['INCOME', 'EXPENSE'] as const;
 function convertRecurrentTransaction(
 	transaction: Transaction & { paymentConfirmations: { id: number; paidAt: Date }[] }
 ): Entities.RecurrentTransaction {
+	const lastPaymentConfirmation = transaction.paymentConfirmations.at(0)?.paidAt;
+
 	return {
 		id: transaction.id,
 		name: transaction.name,
@@ -20,7 +22,7 @@ function convertRecurrentTransaction(
 		tags: new Set(transaction.tags),
 		category: transaction.category,
 		mode: 'RECURRENT',
-		paymentConfirmations: transaction.paymentConfirmations
+		lastPaymentConfirmationAt: lastPaymentConfirmation ?? null
 	};
 }
 
@@ -31,6 +33,9 @@ function convertSinglePaymentTransaction(
 		throw new Error('Invalid Single Payment Transaction');
 	}
 
+	const lastPaymentConfirmation = transaction.paymentConfirmations.at(0)?.paidAt;
+	const paidInstallments = lastPaymentConfirmation ? 1 : 0;
+
 	return {
 		id: transaction.id,
 		name: transaction.name,
@@ -38,11 +43,12 @@ function convertSinglePaymentTransaction(
 		numberOfInstallments: 1,
 		firstInstallmentAt: transaction.firstInstallmentAt,
 		lastInstallmentAt: transaction.lastInstallmentAt,
+		paidInstallments,
 		purchasedAt: transaction.purchasedAt,
 		category: transaction.category,
 		mode: 'SINGLE_PAYMENT',
 		tags: new Set(transaction.tags),
-		paymentConfirmations: transaction.paymentConfirmations
+		lastPaymentConfirmationAt: lastPaymentConfirmation ?? null
 	};
 }
 
@@ -53,18 +59,24 @@ function convertInInstallmentsTransaction(
 		throw new Error('Invalid In Installments Transaction');
 	}
 
+	const lastPaymentConfirmation = transaction.paymentConfirmations.at(0)?.paidAt;
+	const paidInstallments = lastPaymentConfirmation
+		? getDatesDiffInMonths(lastPaymentConfirmation, transaction.firstInstallmentAt) + 1
+		: 0;
+
 	return {
 		id: transaction.id,
 		name: transaction.name,
 		value: transaction.value,
 		purchasedAt: transaction.purchasedAt,
 		firstInstallmentAt: transaction.firstInstallmentAt,
+		paidInstallments,
 		tags: new Set(transaction.tags),
 		category: transaction.category,
 		mode: 'IN_INSTALLMENTS',
 		numberOfInstallments: transaction.numberOfInstallments,
 		lastInstallmentAt: transaction.lastInstallmentAt,
-		paymentConfirmations: transaction.paymentConfirmations
+		lastPaymentConfirmationAt: lastPaymentConfirmation ?? null
 	};
 }
 

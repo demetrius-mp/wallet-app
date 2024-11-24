@@ -38,12 +38,7 @@
 	import Separator from '$lib/shadcn/ui/separator/separator.svelte';
 	import { cn } from '$lib/shadcn/utils';
 	import type { Entities } from '$lib/types.js';
-	import {
-		calendarDateToDayjs,
-		dates,
-		dayjsToCalendarDate,
-		getDatesDiffInMonths
-	} from '$lib/utils/dates.js';
+	import { calendarDateToDayjs, dates, dayjsToCalendarDate } from '$lib/utils/dates.js';
 	import { formatCurrency } from '$lib/utils/format-currency.js';
 
 	let { data } = $props();
@@ -153,18 +148,15 @@
 	}
 
 	function checkPaymentIsConfirmed(transaction: (typeof data.transactions)[0]) {
-		const lastPayment = transaction.paymentConfirmations.at(0);
+		const lastPaymentConfirmationAt = transaction.lastPaymentConfirmationAt;
 
-		if (!lastPayment) {
+		if (!lastPaymentConfirmationAt) {
 			return false;
 		}
 
-		const paidAt = dates.utc(lastPayment.paidAt);
+		const paidAt = dates.utc(lastPaymentConfirmationAt);
 
-		const isSameMonth = paidAt.isSame(searchParams.date, 'month');
-		const isAfterMonth = paidAt.isAfter(searchParams.date, 'month');
-
-		return isSameMonth || isAfterMonth;
+		return !paidAt.isBefore(searchParams.date, 'month');
 	}
 
 	$effect(() => {
@@ -386,9 +378,9 @@
 	<ul class="space-y-4">
 		{#each filteredTransactions as transaction (transaction.id)}
 			{@const paymentIsConfirmed = checkPaymentIsConfirmed(transaction)}
-			{@const paidInstallments =
+			<!-- {@const paidInstallments =
 				getDatesDiffInMonths(transaction.firstInstallmentAt, searchParams.date.toDate()) +
-				(paymentIsConfirmed ? 1 : 0)}
+				(paymentIsConfirmed ? 1 : 0)} -->
 
 			<li>
 				<Card.Root class="w-full max-w-lg">
@@ -527,19 +519,19 @@
 								<span
 									class={cn(
 										'flex items-center gap-1 text-sm',
-										paidInstallments === transaction.numberOfInstallments
+										transaction.paidInstallments === transaction.numberOfInstallments
 											? 'text-green-800'
 											: 'text-muted-foreground'
 									)}
 								>
-									{#if paidInstallments === transaction.numberOfInstallments}
+									{#if transaction.paidInstallments === transaction.numberOfInstallments}
 										<CheckIcon class="!size-3.5" />
 									{/if}
 
-									{#if paidInstallments === 0}
+									{#if transaction.paidInstallments === 0}
 										Nenhuma parcela paga
 									{:else}
-										{paidInstallments} de {transaction.numberOfInstallments} parcelas
+										{transaction.paidInstallments} de {transaction.numberOfInstallments} parcelas
 									{/if}
 								</span>
 							</div>
@@ -559,7 +551,7 @@
 									{dates.utc(transaction.firstInstallmentAt).format('MM/YYYY')}
 								</span>
 
-								{#if transaction.numberOfInstallments !== paidInstallments}
+								{#if transaction.numberOfInstallments !== transaction.paidInstallments}
 									<span class="text-muted-foreground">Última parcela:</span>
 									<span class="text-end">
 										{dates.utc(transaction.lastInstallmentAt).format('MM/YYYY')}
@@ -567,13 +559,14 @@
 
 									<span class="text-muted-foreground">Valor total pago:</span>
 									<span class="text-end">
-										{formatCurrency(transaction.value * paidInstallments)}
+										{formatCurrency(transaction.value * transaction.paidInstallments)}
 									</span>
 
 									<span class="text-muted-foreground">Valor restante:</span>
 									<span class="text-end">
 										{formatCurrency(
-											transaction.value * (transaction.numberOfInstallments - paidInstallments)
+											transaction.value *
+												(transaction.numberOfInstallments - transaction.paidInstallments)
 										)}
 									</span>
 								{/if}

@@ -27,12 +27,12 @@
 		transactionCategoryTags: Set<Entities.TransactionCategory>;
 	};
 
-	const nextMonth = dates().utc(true).startOf('month').add(1, 'month');
+	const initialDate = dates(data.searchParams.date, 'YYYY-MM-DD').utc(true);
 
 	let searchParams = $state<SearchParams>({
 		term: data.searchParams.term,
 		tags: new SvelteSet(data.searchParams.tags),
-		date: dates(data.searchParams.date, 'YYYY-MM-DD').utc(true),
+		date: initialDate,
 		transactionModeTags: new SvelteSet(data.searchParams.transactionModeTags),
 		transactionCategoryTags: new SvelteSet(data.searchParams.transactionCategoryTags)
 	});
@@ -75,7 +75,7 @@
 			params.set('tags', Array.from(searchParams.tags).join(','));
 		}
 
-		if (!searchParams.date.isSame(nextMonth, 'month')) {
+		if (!searchParams.date.isSame(initialDate, 'month')) {
 			params.set('date', searchParams.date.startOf('month').format('YYYY-MM-DD'));
 		}
 
@@ -99,7 +99,7 @@
 <MetaTags title="Transações" />
 
 <div class="p-4">
-	<Heading {bill} bind:date={searchParams.date} initialDate={nextMonth} />
+	<Heading {bill} bind:date={searchParams.date} {initialDate} />
 
 	<div class="mt-4">
 		<SearchBar bind:term={searchParams.term} />

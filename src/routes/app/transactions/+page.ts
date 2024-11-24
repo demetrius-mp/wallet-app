@@ -57,15 +57,14 @@ export const load = (async (e) => {
 	const transactionModeTagsParam = e.url.searchParams.get('transactionModeTags');
 	const transactionModeTags = checkTransactionModeTagsParamIsValid(transactionModeTagsParam);
 
-	const nextMonth = dates
+	const initialDate = dates
 		.tz(new Date(), 'America/Campo_Grande')
 		.utc(true)
 		.startOf('month')
-		.add(1, 'month')
 		.format('YYYY-MM-DD');
 
 	const dateParam = e.url.searchParams.get('date');
-	const date = dateParam && checkDateIsValid(dateParam) ? dateParam : nextMonth;
+	const date = dateParam && checkDateIsValid(dateParam) ? dateParam : initialDate;
 
 	const searchParams = {
 		term,

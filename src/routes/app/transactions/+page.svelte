@@ -1,45 +1,38 @@
 <script lang="ts">
 	import type { Dayjs } from 'dayjs';
-	import CalendarIcon from 'lucide-svelte/icons/calendar';
 	import CheckIcon from 'lucide-svelte/icons/check';
-	import CopyIcon from 'lucide-svelte/icons/copy';
 	import EditIcon from 'lucide-svelte/icons/edit';
 	import EllipsisVerticalIcon from 'lucide-svelte/icons/ellipsis-vertical';
 	import PlusIcon from 'lucide-svelte/icons/plus';
-	import SearchIcon from 'lucide-svelte/icons/search';
 	import SquareIcon from 'lucide-svelte/icons/square';
 	import SquareCheckIcon from 'lucide-svelte/icons/square-check';
 	import TrashIcon from 'lucide-svelte/icons/trash';
-	import XIcon from 'lucide-svelte/icons/x';
-	import { flip } from 'svelte/animate';
 	import { SvelteSet } from 'svelte/reactivity';
-	import { scale } from 'svelte/transition';
 	import { toast } from 'svelte-sonner';
 
 	import { applyAction, enhance } from '$app/forms';
 	import { goto, invalidateAll } from '$app/navigation';
+	import FloatingButton from '$lib/components/floating-button.svelte';
 	import MetaTags from '$lib/components/meta-tags.svelte';
-	import MonthCalendar from '$lib/components/month-calendar.svelte';
 	import {
-		getTransactionCategoryLabel,
+		checkPaymentIsConfirmed,
+		getBill,
 		getTransactionModeLabel,
-		TRANSACTION_CATEGORIES,
-		TRANSACTION_MODES,
 		transactionFilters
 	} from '$lib/models/transaction';
-	import { chipVariants } from '$lib/shadcn/custom/chip.svelte';
 	import { badgeVariants } from '$lib/shadcn/ui/badge/badge.svelte';
 	import Button, { buttonVariants } from '$lib/shadcn/ui/button/button.svelte';
 	import * as Card from '$lib/shadcn/ui/card';
-	import * as Command from '$lib/shadcn/ui/command/index.js';
 	import * as DropdownMenu from '$lib/shadcn/ui/dropdown-menu';
-	import Input from '$lib/shadcn/ui/input/input.svelte';
-	import * as Popover from '$lib/shadcn/ui/popover';
 	import Separator from '$lib/shadcn/ui/separator/separator.svelte';
 	import { cn } from '$lib/shadcn/utils';
 	import type { Entities } from '$lib/types.js';
-	import { calendarDateToDayjs, dates, dayjsToCalendarDate } from '$lib/utils/dates.js';
+	import { dates } from '$lib/utils/dates.js';
 	import { formatCurrency } from '$lib/utils/format-currency.js';
+
+	import Filters from './filters.svelte';
+	import Heading from './heading.svelte';
+	import SearchBar from './search-bar.svelte';
 
 	let { data } = $props();
 
@@ -77,8 +70,6 @@
 		);
 	}
 
-	let searchInputValue = $state(searchParams.term);
-
 	let filteredTransactions = $derived.by(() => {
 		const minDate = searchParams.date.startOf('month');
 
@@ -111,17 +102,7 @@
 		});
 	});
 
-	let bill = $derived.by(() => {
-		return filteredTransactions.reduce((acc, transaction) => {
-			if (!checkPaymentIsConfirmed(transaction)) {
-				return acc;
-			}
-
-			const value = transaction.category === 'EXPENSE' ? -transaction.value : transaction.value;
-
-			return acc + value;
-		}, 0);
-	});
+	let bill = $derived(getBill(filteredTransactions, searchParams.date));
 
 	function toggleTag(tag: string) {
 		if (searchParams.tags.has(tag)) {
@@ -145,18 +126,6 @@
 		} else {
 			searchParams.transactionCategoryTags.add(tag);
 		}
-	}
-
-	function checkPaymentIsConfirmed(transaction: (typeof data.transactions)[0]) {
-		const lastPaymentConfirmationAt = transaction.lastPaymentConfirmationAt;
-
-		if (!lastPaymentConfirmationAt) {
-			return false;
-		}
-
-		const paidAt = dates.utc(lastPaymentConfirmationAt);
-
-		return !paidAt.isBefore(searchParams.date, 'month');
 	}
 
 	$effect(() => {
@@ -194,190 +163,29 @@
 <MetaTags title="Transações" />
 
 <div class="p-4">
-	<div class="flex items-baseline gap-2">
-		<h2 class="text-2xl">Saldo</h2>
-		<small>
-			({searchParams.date.format('MM/YYYY')})
-		</small>
+	<Heading {bill} bind:date={searchParams.date} initialDate={nextMonth} />
+
+	<div class="mt-4">
+		<SearchBar bind:term={searchParams.term} />
 	</div>
 
-	<span class="text-4xl font-extrabold">
-		{formatCurrency(bill)}
-	</span>
-
-	<Separator class="my-4" />
-
-	<div class="flex items-center justify-between">
-		<div>
-			<h2 class="text-2xl">Transações</h2>
-			<span class="text-sm">
-				do mês
-				{searchParams.date.format('MM/YYYY')}
-			</span>
-		</div>
-
-		<div class="flex gap-2">
-			<Button variant="outline" class="size-12 rounded-full">
-				<CopyIcon class="!size-6" />
-				<span class="sr-only"> Copiar transações </span>
-			</Button>
-
-			<Popover.Root>
-				<Popover.Trigger class={cn(buttonVariants({ variant: 'outline' }), 'size-12 rounded-full')}>
-					<CalendarIcon class="!size-6" />
-					<span class="sr-only"> Filtrar por mês </span>
-				</Popover.Trigger>
-
-				<Popover.Content align="end" side="bottom" class="w-auto p-0">
-					<MonthCalendar
-						minValue={dayjsToCalendarDate(nextMonth.subtract(1, 'month'))}
-						value={dayjsToCalendarDate(searchParams.date)}
-						onValueChange={(value) => {
-							if (!value) return;
-
-							searchParams.date = calendarDateToDayjs(value);
-						}}
-					/>
-				</Popover.Content>
-			</Popover.Root>
-		</div>
-	</div>
-
-	<form
-		onsubmit={(e) => {
-			e.preventDefault();
-			searchParams.term = searchInputValue;
-		}}
-		class="mt-4 flex gap-2"
-	>
-		<div class="relative w-full">
-			<Input
-				name="term"
-				bind:value={searchInputValue}
-				class="pr-8"
-				type="text"
-				placeholder="Pesquise por nome"
-			/>
-
-			{#if searchInputValue}
-				<Button
-					type="button"
-					variant="ghost"
-					size="icon"
-					class="group absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-					onclick={() => {
-						searchParams.term = '';
-						searchInputValue = '';
-					}}
-					aria-label="Limpar pesquisa"
-				>
-					<XIcon
-						class="size-4 text-muted-foreground transition-colors group-hover:text-foreground"
-					/>
-				</Button>
-			{/if}
-		</div>
-
-		<Button type="submit">
-			<SearchIcon />
-			<span class="hidden sm:inline"> Buscar </span>
-		</Button>
-	</form>
-
-	<div class="mt-4 flex flex-wrap gap-2">
-		<Popover.Root>
-			<Popover.Trigger>
-				{#snippet child({ props })}
-					<button {...props} class={cn(chipVariants({ variant: 'outline' }))}>
-						+ Adicionar filtro
-					</button>
-				{/snippet}
-			</Popover.Trigger>
-			<Popover.Content side="bottom" align="start" class="w-[180px] p-0">
-				<Command.Root>
-					<Command.Input class="h-8" placeholder="Buscar filtros..." />
-					<Command.List>
-						<Command.Empty class="py-4">
-							Nenhum filtro
-							<br />
-							encontrada.
-						</Command.Empty>
-
-						<Command.Group heading="Tipos de transação">
-							{#each TRANSACTION_MODES as transactionMode}
-								<Command.Item
-									value={transactionMode}
-									onSelect={() => toggleTransactionModeTag(transactionMode)}
-									class="flex items-center justify-between break-all"
-								>
-									{getTransactionModeLabel(transactionMode)}
-
-									{#if searchParams.transactionModeTags.has(transactionMode)}
-										<CheckIcon />
-									{/if}
-								</Command.Item>
-							{/each}
-
-							{#each TRANSACTION_CATEGORIES as transactionCategory}
-								<Command.Item
-									value={transactionCategory}
-									onSelect={() => toggleTransactionCategoryTag(transactionCategory)}
-									class="flex items-center justify-between break-all"
-								>
-									{getTransactionCategoryLabel(transactionCategory)}
-
-									{#if searchParams.transactionCategoryTags.has(transactionCategory)}
-										<CheckIcon />
-									{/if}
-								</Command.Item>
-							{/each}
-						</Command.Group>
-
-						<Command.Separator />
-
-						{#if data.availableTags.size > 0}
-							<Command.Group heading="Tags">
-								{#each data.availableTags as tag}
-									<Command.Item
-										value={tag}
-										onSelect={() => toggleTag(tag)}
-										class="flex items-center justify-between break-all"
-									>
-										{tag}
-
-										{#if searchParams.tags.has(tag)}
-											<CheckIcon />
-										{/if}
-									</Command.Item>
-								{/each}
-							</Command.Group>
-						{/if}
-					</Command.List>
-				</Command.Root>
-			</Popover.Content>
-		</Popover.Root>
-
-		{#each searchParams.tags as tag (tag)}
-			<button
-				animate:flip={{
-					duration: 150
-				}}
-				transition:scale={{
-					duration: 150
-				}}
-				class={cn(badgeVariants())}
-				onclick={() => toggleTag(tag)}
-			>
-				{tag}
-			</button>
-		{/each}
+	<div class="mt-4">
+		<Filters
+			availableTags={data.availableTags}
+			selectedTags={searchParams.tags}
+			transactionCategoryTags={searchParams.transactionCategoryTags}
+			transactionModeTags={searchParams.transactionModeTags}
+			onToggleTag={toggleTag}
+			onToggleTransactionCategoryTag={toggleTransactionCategoryTag}
+			onToggleTransactionModeTag={toggleTransactionModeTag}
+		/>
 	</div>
 
 	<Separator class="my-4" />
 
 	<ul class="space-y-4">
 		{#each filteredTransactions as transaction (transaction.id)}
-			{@const paymentIsConfirmed = checkPaymentIsConfirmed(transaction)}
+			{@const paymentIsConfirmed = checkPaymentIsConfirmed(transaction, searchParams.date)}
 
 			<li>
 				<Card.Root class="w-full max-w-lg">
@@ -624,18 +432,8 @@
 	</ul>
 </div>
 
-<div>
-	<div class="mt-12"></div>
-	<div class="floating-button-container">
-		<Button href="/app/transactions/new" class="size-12 rounded-full">
-			<PlusIcon class="!size-6" />
-		</Button>
-	</div>
-</div>
-
-<style lang="postcss">
-	.floating-button-container {
-		@apply fixed bottom-4;
-		right: calc(1rem + var(--scrollbar-width, 0px));
-	}
-</style>
+<FloatingButton>
+	<Button href="/app/transactions/new" class="size-12 rounded-full">
+		<PlusIcon class="!size-6" />
+	</Button>
+</FloatingButton>

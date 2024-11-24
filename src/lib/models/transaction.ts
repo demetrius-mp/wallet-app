@@ -182,3 +182,27 @@ export const transactionFilters = {
 		);
 	}
 };
+
+export function checkPaymentIsConfirmed(transaction: Entities.Transaction, date: Dayjs) {
+	const lastPaymentConfirmationAt = transaction.lastPaymentConfirmationAt;
+
+	if (!lastPaymentConfirmationAt) {
+		return false;
+	}
+
+	const paidAt = dates.utc(lastPaymentConfirmationAt);
+
+	return !paidAt.isBefore(date, 'month');
+}
+
+export function getBill(transactions: Entities.Transaction[], date: Dayjs) {
+	return transactions.reduce((acc, transaction) => {
+		if (!checkPaymentIsConfirmed(transaction, date)) {
+			return acc;
+		}
+
+		const value = transaction.category === 'EXPENSE' ? -transaction.value : transaction.value;
+
+		return acc + value;
+	}, 0);
+}

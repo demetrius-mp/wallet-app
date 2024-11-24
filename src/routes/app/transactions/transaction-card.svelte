@@ -39,8 +39,8 @@
 		onToggleTransactionModeTag
 	}: Props = $props();
 
-	const paymentIsConfirmed = checkPaymentIsConfirmed(transaction, date);
-	const matchesTransactionModeTag = transactionModeTags.has(transaction.mode);
+	const paymentIsConfirmed = $derived(checkPaymentIsConfirmed(transaction, date));
+	const matchesTransactionModeTag = $derived(transactionModeTags.has(transaction.mode));
 </script>
 
 <Card.Root class="w-full max-w-lg">

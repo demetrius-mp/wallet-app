@@ -168,7 +168,7 @@
 	</ul>
 </div>
 
-<FloatingButton>
+<FloatingButton spacerClass="mt-16">
 	<Button href="/app/transactions/new" class="size-12 rounded-full">
 		<PlusIcon class="!size-6" />
 	</Button>

@@ -20,9 +20,6 @@
 	import { dates } from '$lib/utils/dates';
 	import { formatCurrency } from '$lib/utils/format-currency';
 
-	import type { SubmitFunction as DeleteSubmitFunction } from './[transactionId=int]/delete/$types';
-	import type { SubmitFunction as ToggleConfirmPaymentSubmitFunction } from './[transactionId=int]/toggle-payment-confirmation/$types';
-
 	type Props = {
 		transaction: Entities.Transaction;
 		date: Dayjs;
@@ -44,7 +41,7 @@
 	const paymentIsConfirmed = $derived(checkPaymentIsConfirmed(transaction, date));
 	const matchesTransactionModeTag = $derived(transactionModeTags.has(transaction.mode));
 
-	const handleDelete: DeleteSubmitFunction = () => {
+	const handleDelete: import('./[transactionId=int]/delete/$types').SubmitFunction = () => {
 		return async ({ update, result }) => {
 			if (result.type !== 'success') {
 				return await update();
@@ -56,25 +53,26 @@
 		};
 	};
 
-	const handleToggleConfirmPayment: ToggleConfirmPaymentSubmitFunction = () => {
-		return async ({ update, result }) => {
-			if (result.type === 'success' && result.data) {
-				toast.success(result.data.message);
+	const handleToggleConfirmPayment: import('./[transactionId=int]/toggle-payment-confirmation/$types').SubmitFunction =
+		() => {
+			return async ({ update, result }) => {
+				if (result.type === 'success' && result.data) {
+					toast.success(result.data.message);
 
-				// TODO: update context
+					// TODO: update context
+					return await update();
+				}
+
+				if (result.type === 'failure' && result.data) {
+					toast.error(result.data.message);
+
+					// TODO: update context
+					return await update();
+				}
+
 				return await update();
-			}
-
-			if (result.type === 'failure' && result.data) {
-				toast.error(result.data.message);
-
-				// TODO: update context
-				return await update();
-			}
-
-			return await update();
+			};
 		};
-	};
 </script>
 
 <Card.Root class="w-full max-w-lg">

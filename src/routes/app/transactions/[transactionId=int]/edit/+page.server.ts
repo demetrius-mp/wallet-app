@@ -19,17 +19,17 @@ export const load = (async (e) => {
 		where: {
 			id: transactionId
 		},
-		select: {
-			id: true,
-			name: true,
-			category: true,
-			purchasedAt: true,
-			firstInstallmentAt: true,
-			lastInstallmentAt: true,
-			value: true,
-			numberOfInstallments: true,
-			mode: true,
-			tags: true
+		include: {
+			paymentConfirmations: {
+				select: {
+					id: true,
+					paidAt: true
+				},
+				take: 1,
+				orderBy: {
+					paidAt: 'desc'
+				}
+			}
 		}
 	});
 

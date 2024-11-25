@@ -1,6 +1,7 @@
 import { superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
+import { convertTransaction } from '$lib/models/transaction';
 import {
 	InInstallmentsTransactionSchema,
 	RecurrentTransactionSchema,
@@ -11,7 +12,7 @@ import { dates } from '$lib/utils/dates';
 import type { PageLoad } from './$types';
 
 export const load = (async (e) => {
-	const { transaction } = e.data;
+	const { transaction, ...restData } = e.data;
 
 	const [recurrentTransactionForm, singlePaymentTransactionForm, inInstallmentsTransactionForm] =
 		await Promise.all([
@@ -71,6 +72,7 @@ export const load = (async (e) => {
 		recurrentTransactionForm,
 		singlePaymentTransactionForm,
 		inInstallmentsTransactionForm,
-		...e.data
+		transaction: convertTransaction(transaction),
+		...restData
 	};
 }) satisfies PageLoad;

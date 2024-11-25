@@ -5,6 +5,7 @@
 	import { SvelteSet } from 'svelte/reactivity';
 
 	import { goto } from '$app/navigation';
+	import Container from '$lib/components/container.svelte';
 	import FloatingButton from '$lib/components/floating-button.svelte';
 	import MetaTags from '$lib/components/meta-tags.svelte';
 	import { filterTransactions, getBill } from '$lib/models/transaction';
@@ -131,7 +132,7 @@
 
 <MetaTags title="Transações" />
 
-<div class="p-4">
+<Container>
 	<Heading {bill} bind:date={searchParams.date} minCalendarDate={minDate} />
 
 	<div class="mt-4">
@@ -166,7 +167,7 @@
 			</li>
 		{/each}
 	</ul>
-</div>
+</Container>
 
 <FloatingButton spacerClass="mt-16">
 	<Button href="/app/transactions/new" class="size-12 rounded-full">

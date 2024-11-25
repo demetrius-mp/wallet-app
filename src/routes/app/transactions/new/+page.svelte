@@ -3,6 +3,7 @@
 	import type { z } from 'zod';
 
 	import { goto } from '$app/navigation';
+	import Container from '$lib/components/container.svelte';
 	import InInstallmentsTransactionForm from '$lib/components/forms/transaction-form/in-installments-transaction-form.svelte';
 	import RecurrentTransactionForm from '$lib/components/forms/transaction-form/recurrent-transaction-form.svelte';
 	import SinglePaymentTransactionForm from '$lib/components/forms/transaction-form/single-payment-transaction-form.svelte';
@@ -41,7 +42,7 @@
 
 <MetaTags title="Nova transação" />
 
-<div class="p-4">
+<Container>
 	<PageHeading
 		title="Nova transação"
 		description="Crie uma nova transação informando os dados abaixo."
@@ -81,4 +82,4 @@
 			{formProps}
 		/>
 	{/if}
-</div>
+</Container>

@@ -163,8 +163,8 @@
 			<div class="flex items-center space-x-3 space-y-0">
 				<Form.Control>
 					{#snippet children({ props })}
-						<RadioGroup.Item value="INCOME" {...props} />
-						<Form.Label class="font-normal">Entrada</Form.Label>
+						<RadioGroup.Item value="EXPENSE" {...props} />
+						<Form.Label class="font-normal">Saída</Form.Label>
 					{/snippet}
 				</Form.Control>
 			</div>
@@ -172,8 +172,8 @@
 			<div class="flex items-center space-x-3 space-y-0">
 				<Form.Control>
 					{#snippet children({ props })}
-						<RadioGroup.Item value="EXPENSE" {...props} />
-						<Form.Label class="font-normal">Saída</Form.Label>
+						<RadioGroup.Item value="INCOME" {...props} />
+						<Form.Label class="font-normal">Entrada</Form.Label>
 					{/snippet}
 				</Form.Control>
 			</div>

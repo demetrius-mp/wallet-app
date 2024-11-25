@@ -75,7 +75,7 @@
 		};
 </script>
 
-<Card.Root class="w-full max-w-lg">
+<Card.Root class="w-full">
 	<Card.Header class="p-4 pb-3">
 		<div class="flex items-start justify-between">
 			<Card.Title class="max-w-[calc(100%-5rem)] break-words break-all pr-2">

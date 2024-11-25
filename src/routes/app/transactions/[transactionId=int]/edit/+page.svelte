@@ -8,9 +8,10 @@
 	import SinglePaymentTransactionForm from '$lib/components/forms/transaction-form/single-payment-transaction-form.svelte';
 	import MetaTags from '$lib/components/meta-tags.svelte';
 	import PageHeading from '$lib/components/page-heading.svelte';
+	import { convertTransaction } from '$lib/models/transaction.js';
 	import type { BaseTransactionSchema } from '$lib/schemas.js';
 	import * as Tabs from '$lib/shadcn/ui/tabs';
-	import type { Entities } from '$lib/types.js';
+	import type { Entities, GetActionResultFromActions } from '$lib/types.js';
 
 	let { data } = $props();
 
@@ -18,9 +19,20 @@
 	let baseFormData = $state<z.infer<typeof BaseTransactionSchema> | undefined>(undefined);
 
 	const formProps: FormOptions = {
-		onUpdate: async ({ result }) => {
+		onUpdate: async (e) => {
+			const result = e.result as GetActionResultFromActions<
+				typeof import('./+page.server.js').actions
+			>;
 			if (result.type !== 'success') return;
 
+			if (!result.data) return;
+
+			const { lastPaymentConfirmationAt, ..._transaction } = convertTransaction({
+				...result.data.transaction,
+				paymentConfirmations: []
+			});
+
+			// TODO: update context
 			await goto('/app/transactions');
 		}
 	};

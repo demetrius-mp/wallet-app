@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { ActionFailure } from '@sveltejs/kit';
 	import type { FormOptions } from 'sveltekit-superforms';
 	import type { z } from 'zod';
 
@@ -9,9 +8,10 @@
 	import SinglePaymentTransactionForm from '$lib/components/forms/transaction-form/single-payment-transaction-form.svelte';
 	import MetaTags from '$lib/components/meta-tags.svelte';
 	import PageHeading from '$lib/components/page-heading.svelte';
+	import { convertTransaction } from '$lib/models/transaction.js';
 	import type { BaseTransactionSchema } from '$lib/schemas.js';
 	import * as Tabs from '$lib/shadcn/ui/tabs';
-	import type { Entities } from '$lib/types.js';
+	import type { Entities, GetActionResultFromActions } from '$lib/types.js';
 
 	let { data } = $props();
 
@@ -19,30 +19,21 @@
 
 	let baseFormData = $state<z.infer<typeof BaseTransactionSchema> | undefined>(undefined);
 
-	type ActionsExport = typeof import('./+page.server.js').actions;
-
-	type ExcludeActionFailure<T> = T extends ActionFailure<any> ? never : T extends void ? never : T;
-
-	type ActionsSuccess<T extends Record<string, (...args: any) => any>> = {
-		[Key in keyof T]: ExcludeActionFailure<Awaited<ReturnType<T[Key]>>>;
-	}[keyof T];
-
-	type ExtractActionFailure<T> =
-		T extends ActionFailure<infer X> ? (X extends void ? never : X) : never;
-
-	type ActionsFailure<T extends Record<string, (...args: any) => any>> = {
-		[Key in keyof T]: Exclude<ExtractActionFailure<Awaited<ReturnType<T[Key]>>>, void>;
-	}[keyof T];
-
-	type S = ActionsSuccess<ActionsExport>['transaction'];
-	type V = ActionsFailure<ActionsExport>;
-
 	const formProps: FormOptions = {
-		onUpdate: async ({ result }) => {
+		onUpdate: async (e) => {
+			const result = e.result as GetActionResultFromActions<
+				typeof import('./+page.server.js').actions
+			>;
 			if (result.type !== 'success') return;
 
-			const transaction = result.data.transaction;
+			if (!result.data) return;
 
+			const _transaction = convertTransaction({
+				...result.data.transaction,
+				paymentConfirmations: []
+			});
+
+			// TODO: update context
 			await goto('/app/transactions');
 		}
 	};

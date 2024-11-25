@@ -1,4 +1,5 @@
-import type { ActionFailure } from '@sveltejs/kit';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { ActionFailure, ActionResult } from '@sveltejs/kit';
 import type { Dayjs } from 'dayjs';
 
 import type { TRANSACTION_CATEGORIES, TRANSACTION_MODES } from '$lib/models/transaction';
@@ -53,13 +54,16 @@ export namespace Entities {
 
 type ExcludeActionFailure<T> = T extends ActionFailure<any> ? never : T extends void ? never : T;
 
+type ExtractActionFailure<T> =
+	T extends ActionFailure<infer X> ? (X extends void ? never : X) : never;
+
 type ActionsSuccess<T extends Record<string, (...args: any) => any>> = {
 	[Key in keyof T]: ExcludeActionFailure<Awaited<ReturnType<T[Key]>>>;
 }[keyof T];
 
-type ExtractActionFailure<T> =
-	T extends ActionFailure<infer X> ? (X extends void ? never : X) : never;
-
 type ActionsFailure<T extends Record<string, (...args: any) => any>> = {
 	[Key in keyof T]: Exclude<ExtractActionFailure<Awaited<ReturnType<T[Key]>>>, void>;
 }[keyof T];
+
+export type GetActionResultFromActions<TActions extends Record<string, (...args: any) => any>> =
+	ActionResult<ActionsSuccess<TActions>, ActionsFailure<TActions>>;

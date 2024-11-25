@@ -55,15 +55,19 @@ export const actions = {
 			// transaction has no payment confirmation
 			if (!lastPaymentConfirmation) {
 				// so we set the payment confirmation as the first installment date
-				await prisma.transactionPaymentConfirmation.create({
+				const paymentConfirmation = await prisma.transactionPaymentConfirmation.create({
 					data: {
 						transactionId,
 						paidAt: transaction.firstInstallmentAt
+					},
+					select: {
+						paidAt: true
 					}
 				});
 
 				return {
-					message: 'Pagamento confirmado com sucesso'
+					message: 'Pagamento confirmado com sucesso',
+					paymentConfirmations: [paymentConfirmation]
 				};
 			}
 
@@ -76,7 +80,8 @@ export const actions = {
 			});
 
 			return {
-				message: 'Pagamento removido com sucesso'
+				message: 'Pagamento removido com sucesso',
+				paymentConfirmations: []
 			};
 		}
 
@@ -90,15 +95,19 @@ export const actions = {
 					});
 				}
 
-				await prisma.transactionPaymentConfirmation.create({
+				const paymentConfirmation = await prisma.transactionPaymentConfirmation.create({
 					data: {
 						transactionId: transaction.id,
 						paidAt: transaction.firstInstallmentAt
+					},
+					select: {
+						paidAt: true
 					}
 				});
 
 				return {
-					message: 'Pagamento confirmado com sucesso'
+					message: 'Pagamento confirmado com sucesso',
+					paymentConfirmations: [paymentConfirmation]
 				};
 			}
 
@@ -115,22 +124,35 @@ export const actions = {
 					}
 				});
 
+				const paymentConfirmations: { paidAt: Date }[] = [];
+
+				if (!firstInstallmentAt.isAfter(lastPaymentConfirmationAt.subtract(1, 'month'))) {
+					paymentConfirmations.push({
+						paidAt: lastPaymentConfirmationAt.subtract(1, 'month').toDate()
+					});
+				}
+
 				return {
-					message: 'Pagamento removido com sucesso'
+					message: 'Pagamento removido com sucesso',
+					paymentConfirmations
 				};
 			}
 
 			// can only confirm payments that are subsequent to the last payment confirmation
 			if (paymentDate.isSame(lastPaymentConfirmationAt.add(1, 'month'))) {
-				await prisma.transactionPaymentConfirmation.create({
+				const paymentConfirmation = await prisma.transactionPaymentConfirmation.create({
 					data: {
 						transactionId: transaction.id,
 						paidAt: paymentDate.toDate()
+					},
+					select: {
+						paidAt: true
 					}
 				});
 
 				return {
-					message: 'Pagamento confirmado com sucesso'
+					message: 'Pagamento confirmado com sucesso',
+					paymentConfirmations: [paymentConfirmation]
 				};
 			}
 
@@ -163,15 +185,19 @@ export const actions = {
 					});
 				}
 
-				await prisma.transactionPaymentConfirmation.create({
+				const paymentConfirmation = await prisma.transactionPaymentConfirmation.create({
 					data: {
 						transactionId: transaction.id,
 						paidAt: transaction.firstInstallmentAt
+					},
+					select: {
+						paidAt: true
 					}
 				});
 
 				return {
-					message: 'Pagamento confirmado com sucesso'
+					message: 'Pagamento confirmado com sucesso',
+					paymentConfirmations: [paymentConfirmation]
 				};
 			}
 
@@ -188,8 +214,17 @@ export const actions = {
 					}
 				});
 
+				const paymentConfirmations: { paidAt: Date }[] = [];
+
+				if (!firstInstallmentAt.isAfter(lastPaymentConfirmationAt.subtract(1, 'month'))) {
+					paymentConfirmations.push({
+						paidAt: lastPaymentConfirmationAt.subtract(1, 'month').toDate()
+					});
+				}
+
 				return {
-					message: 'Pagamento removido com sucesso'
+					message: 'Pagamento removido com sucesso',
+					paymentConfirmations
 				};
 			}
 
@@ -204,7 +239,7 @@ export const actions = {
 				// at 11/2024
 				!nextAvailableConfirmation.isAfter(lastInstallmentAt)
 			) {
-				await prisma.transactionPaymentConfirmation.create({
+				const paymentConfirmation = await prisma.transactionPaymentConfirmation.create({
 					data: {
 						transactionId: transaction.id,
 						paidAt: paymentDate.toDate()
@@ -212,7 +247,8 @@ export const actions = {
 				});
 
 				return {
-					message: 'Pagamento confirmado com sucesso'
+					message: 'Pagamento confirmado com sucesso',
+					paymentConfirmations: [paymentConfirmation]
 				};
 			}
 

@@ -20,6 +20,8 @@
 	import { dates } from '$lib/utils/dates';
 	import { formatCurrency } from '$lib/utils/format-currency';
 
+	import { useTransactionsContext } from './transactions-provider.svelte';
+
 	type Props = {
 		transaction: Entities.Transaction;
 		date: Dayjs;
@@ -41,6 +43,8 @@
 	const paymentIsConfirmed = $derived(checkPaymentIsConfirmed(transaction, date));
 	const matchesTransactionModeTag = $derived(transactionModeTags.has(transaction.mode));
 
+	const { deleteTransaction, setTransactionPaymentConfirmation } = useTransactionsContext();
+
 	const handleDelete: import('./[transactionId=int]/delete/$types').SubmitFunction = () => {
 		return async ({ update, result }) => {
 			if (result.type !== 'success') {
@@ -48,7 +52,8 @@
 			}
 
 			toast.success('Transação excluída com sucesso!');
-			// TODO: update context
+			deleteTransaction(transaction.id);
+
 			return await update();
 		};
 	};
@@ -59,14 +64,14 @@
 				if (result.type === 'success' && result.data) {
 					toast.success(result.data.message);
 
-					// TODO: update context
+					const paymentConfirmationDate = result.data.paymentConfirmations.at(0)?.paidAt ?? null;
+
+					setTransactionPaymentConfirmation(transaction.id, paymentConfirmationDate);
 					return await update();
 				}
 
 				if (result.type === 'failure' && result.data) {
 					toast.error(result.data.message);
-
-					// TODO: update context
 					return await update();
 				}
 

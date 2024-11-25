@@ -18,6 +18,7 @@
 	import Heading from './heading.svelte';
 	import SearchBar from './search-bar.svelte';
 	import TransactionCard from './transaction-card.svelte';
+	import { useTransactionsContext } from './transactions-provider.svelte';
 
 	let { data } = $props();
 
@@ -42,7 +43,9 @@
 		transactionCategoryTags: new SvelteSet(data.searchParams.transactionCategoryTags)
 	});
 
-	let filteredTransactions = $derived(filterTransactions(data.transactions, searchParams));
+	const { transactions, availableTags } = useTransactionsContext();
+
+	let filteredTransactions = $derived(filterTransactions($transactions, searchParams));
 	let bill = $derived(getBill(filteredTransactions, searchParams.date));
 
 	function toggleTag(tag: string) {
@@ -141,7 +144,7 @@
 
 	<div class="mt-4">
 		<Filters
-			availableTags={data.availableTags}
+			availableTags={$availableTags}
 			selectedTags={searchParams.tags}
 			transactionCategoryTags={searchParams.transactionCategoryTags}
 			transactionModeTags={searchParams.transactionModeTags}

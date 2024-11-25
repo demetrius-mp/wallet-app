@@ -14,11 +14,15 @@
 	import * as Tabs from '$lib/shadcn/ui/tabs';
 	import type { Entities, GetActionResultFromActions } from '$lib/types.js';
 
+	import { useTransactionsContext } from '../transactions-provider.svelte';
+
 	let { data } = $props();
 
 	let transactionMode = $state<Entities.TransactionMode>('SINGLE_PAYMENT');
 
 	let baseFormData = $state<z.infer<typeof BaseTransactionSchema> | undefined>(undefined);
+
+	const { addTransaction } = useTransactionsContext();
 
 	const formProps: FormOptions = {
 		onUpdate: async (e) => {
@@ -29,12 +33,12 @@
 
 			if (!result.data) return;
 
-			const _transaction = convertTransaction({
+			const transaction = convertTransaction({
 				...result.data.transaction,
 				paymentConfirmations: []
 			});
 
-			// TODO: update context
+			addTransaction(transaction);
 			await goto('/app/transactions');
 		}
 	};

@@ -15,10 +15,14 @@
 	import * as Tabs from '$lib/shadcn/ui/tabs';
 	import type { Entities, GetActionResultFromActions } from '$lib/types.js';
 
+	import { useTransactionsContext } from '../../transactions-provider.svelte';
+
 	let { data } = $props();
 
 	let transactionMode = $state<Entities.TransactionMode>(data.transaction.mode);
 	let baseFormData = $state<z.infer<typeof BaseTransactionSchema> | undefined>(undefined);
+
+	const { updateTransaction } = useTransactionsContext();
 
 	const formProps: FormOptions = {
 		onUpdate: async (e) => {
@@ -29,12 +33,16 @@
 
 			if (!result.data) return;
 
-			const { lastPaymentConfirmationAt, ..._transaction } = convertTransaction({
+			const { lastPaymentConfirmationAt, ...transaction } = convertTransaction({
 				...result.data.transaction,
 				paymentConfirmations: []
 			});
 
-			// TODO: update context
+			updateTransaction(data.transaction.id, {
+				...transaction,
+				lastPaymentConfirmationAt: data.transaction.lastPaymentConfirmationAt
+			});
+
 			await goto('/app/transactions');
 		}
 	};

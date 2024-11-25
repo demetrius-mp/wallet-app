@@ -1,12 +1,12 @@
 import {
 	checkTransactionCategoryIsValid,
-	checkTransactionModeIsValid,
-	convertTransaction
+	checkTransactionModeIsValid
+	// convertTransaction
 } from '$lib/models/transaction';
 import type { Entities } from '$lib/types';
 import { checkDateIsValid, dates } from '$lib/utils/dates';
-import { setUnion } from '$lib/utils/set';
 
+// import { setUnion } from '$lib/utils/set';
 import type { PageLoad } from './$types';
 
 function checkTransactionModeTagsParamIsValid(param: string | null): Entities.TransactionMode[] {
@@ -32,17 +32,17 @@ function checkTransactionCategoryTagsParamIsValid(
 }
 
 export const load = (async (e) => {
-	let availableTags = new Set<string>();
+	// let availableTags = new Set<string>();
 
-	const { transactions: dbTransactions, ...serverData } = e.data;
+	// const { transactions: dbTransactions, ...serverData } = e.data;
 
-	const transactions = dbTransactions.map((t) => {
-		const converted = convertTransaction(t);
+	// const transactions = dbTransactions.map((t) => {
+	// 	const converted = convertTransaction(t);
 
-		availableTags = setUnion(availableTags, converted.tags);
+	// 	availableTags = setUnion(availableTags, converted.tags);
 
-		return converted;
-	});
+	// 	return converted;
+	// });
 
 	const term = e.url.searchParams.get('term') || '';
 
@@ -76,9 +76,9 @@ export const load = (async (e) => {
 	};
 
 	return {
-		transactions,
-		availableTags,
-		searchParams,
-		...serverData
+		// transactions,
+		// availableTags,
+		searchParams
+		// ...serverData
 	};
 }) satisfies PageLoad;

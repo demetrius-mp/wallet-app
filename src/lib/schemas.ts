@@ -90,3 +90,10 @@ export const ConfirmPaymentSchema = z.object({
 		.default(() => getToday().format('YYYY-MM-DD'))
 		.refine((d) => checkDateIsValid(d))
 });
+
+export const UpdateTransactionSchema = z.object({
+	name: z.string(),
+	value: z.number().int().positive(),
+	tags: z.set(z.string()),
+	category: z.enum(['EXPENSE', 'INCOME'])
+});

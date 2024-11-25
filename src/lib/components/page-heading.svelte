@@ -30,7 +30,7 @@
 <h2 class="text-3xl font-semibold tracking-tight text-foreground">{title}</h2>
 
 {#if description}
-	<p class="mt-2 text-sm text-muted-foreground">{description}</p>
+	<p class="mt-2 whitespace-pre-line text-sm text-muted-foreground">{description}</p>
 {/if}
 
 <Separator class="my-6" />

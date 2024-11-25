@@ -7,6 +7,7 @@
 	import InInstallmentsTransactionForm from '$lib/components/forms/transaction-form/in-installments-transaction-form.svelte';
 	import RecurrentTransactionForm from '$lib/components/forms/transaction-form/recurrent-transaction-form.svelte';
 	import SinglePaymentTransactionForm from '$lib/components/forms/transaction-form/single-payment-transaction-form.svelte';
+	import UpdateTransactionForm from '$lib/components/forms/transaction-form/update-transaction-form.svelte';
 	import MetaTags from '$lib/components/meta-tags.svelte';
 	import PageHeading from '$lib/components/page-heading.svelte';
 	import { convertTransaction } from '$lib/models/transaction.js';
@@ -42,43 +43,56 @@
 <MetaTags title="Editar transação" />
 
 <Container>
-	<PageHeading
-		title="Editar transação"
-		description="Edite os dados da transação abaixo."
-		returnTo={{
-			href: '/app/transactions',
-			label: 'Transações'
-		}}
-	/>
+	{#if data.transaction.lastPaymentConfirmationAt !== null}
+		<PageHeading
+			title="Editar transação"
+			description="Essa transação já possui uma confirmação de pagamento, então você não poderá alterar informações como número de parcelas ou datas."
+			returnTo={{
+				href: '/app/transactions',
+				label: 'Transações'
+			}}
+		/>
 
-	<Tabs.Root bind:value={transactionMode}>
-		<Tabs.List class="grid w-full grid-cols-3">
-			<Tabs.Trigger value="SINGLE_PAYMENT">À vista</Tabs.Trigger>
-			<Tabs.Trigger value="RECURRENT">Recorrente</Tabs.Trigger>
-			<Tabs.Trigger value="IN_INSTALLMENTS">Parcelada</Tabs.Trigger>
-		</Tabs.List>
-	</Tabs.Root>
+		<UpdateTransactionForm form={data.updateTransactionForm} {formProps} action="?/update" />
+	{:else}
+		<PageHeading
+			title="Editar transação"
+			description="Edite os dados da transação abaixo."
+			returnTo={{
+				href: '/app/transactions',
+				label: 'Transações'
+			}}
+		/>
 
-	{#if transactionMode === 'IN_INSTALLMENTS'}
-		<InInstallmentsTransactionForm
-			bind:baseFormData
-			form={data.inInstallmentsTransactionForm}
-			action="?/inInstallments"
-			{formProps}
-		/>
-	{:else if transactionMode === 'RECURRENT'}
-		<RecurrentTransactionForm
-			bind:baseFormData
-			form={data.recurrentTransactionForm}
-			action="?/recurrent"
-			{formProps}
-		/>
-	{:else if transactionMode === 'SINGLE_PAYMENT'}
-		<SinglePaymentTransactionForm
-			bind:baseFormData
-			form={data.singlePaymentTransactionForm}
-			action="?/singlePayment"
-			{formProps}
-		/>
+		<Tabs.Root bind:value={transactionMode}>
+			<Tabs.List class="grid w-full grid-cols-3">
+				<Tabs.Trigger value="SINGLE_PAYMENT">À vista</Tabs.Trigger>
+				<Tabs.Trigger value="RECURRENT">Recorrente</Tabs.Trigger>
+				<Tabs.Trigger value="IN_INSTALLMENTS">Parcelada</Tabs.Trigger>
+			</Tabs.List>
+		</Tabs.Root>
+
+		{#if transactionMode === 'IN_INSTALLMENTS'}
+			<InInstallmentsTransactionForm
+				bind:baseFormData
+				form={data.inInstallmentsTransactionForm}
+				action="?/inInstallments"
+				{formProps}
+			/>
+		{:else if transactionMode === 'RECURRENT'}
+			<RecurrentTransactionForm
+				bind:baseFormData
+				form={data.recurrentTransactionForm}
+				action="?/recurrent"
+				{formProps}
+			/>
+		{:else if transactionMode === 'SINGLE_PAYMENT'}
+			<SinglePaymentTransactionForm
+				bind:baseFormData
+				form={data.singlePaymentTransactionForm}
+				action="?/singlePayment"
+				{formProps}
+			/>
+		{/if}
 	{/if}
 </Container>

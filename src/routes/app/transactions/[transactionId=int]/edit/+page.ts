@@ -5,7 +5,8 @@ import { convertTransaction } from '$lib/models/transaction';
 import {
 	InInstallmentsTransactionSchema,
 	RecurrentTransactionSchema,
-	SinglePaymentTransactionSchema
+	SinglePaymentTransactionSchema,
+	UpdateTransactionSchema
 } from '$lib/schemas';
 import { dates } from '$lib/utils/dates';
 
@@ -14,12 +15,17 @@ import type { PageLoad } from './$types';
 export const load = (async (e) => {
 	const { transaction, ...restData } = e.data;
 
-	const [recurrentTransactionForm, singlePaymentTransactionForm, inInstallmentsTransactionForm] =
-		await Promise.all([
-			superValidate(zod(RecurrentTransactionSchema)),
-			superValidate(zod(SinglePaymentTransactionSchema)),
-			superValidate(zod(InInstallmentsTransactionSchema))
-		]);
+	const [
+		recurrentTransactionForm,
+		singlePaymentTransactionForm,
+		inInstallmentsTransactionForm,
+		updateTransactionForm
+	] = await Promise.all([
+		superValidate(zod(RecurrentTransactionSchema)),
+		superValidate(zod(SinglePaymentTransactionSchema)),
+		superValidate(zod(InInstallmentsTransactionSchema)),
+		superValidate(zod(UpdateTransactionSchema))
+	]);
 
 	const lastInstallmentAt =
 		transaction.lastInstallmentAt !== null
@@ -68,10 +74,16 @@ export const load = (async (e) => {
 	inInstallmentsTransactionForm.data.mode = 'IN_INSTALLMENTS';
 	inInstallmentsTransactionForm.data.numberOfInstallments = transaction.numberOfInstallments ?? 2;
 
+	updateTransactionForm.data.name = transaction.name;
+	updateTransactionForm.data.category = transaction.category;
+	updateTransactionForm.data.value = transaction.value;
+	updateTransactionForm.data.tags = new Set(transaction.tags);
+
 	return {
 		recurrentTransactionForm,
 		singlePaymentTransactionForm,
 		inInstallmentsTransactionForm,
+		updateTransactionForm,
 		transaction: convertTransaction(transaction),
 		...restData
 	};

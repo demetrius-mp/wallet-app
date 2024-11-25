@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { ActionFailure } from '@sveltejs/kit';
 	import type { FormOptions } from 'sveltekit-superforms';
 	import type { z } from 'zod';
 
@@ -18,9 +19,29 @@
 
 	let baseFormData = $state<z.infer<typeof BaseTransactionSchema> | undefined>(undefined);
 
+	type ActionsExport = typeof import('./+page.server.js').actions;
+
+	type ExcludeActionFailure<T> = T extends ActionFailure<any> ? never : T extends void ? never : T;
+
+	type ActionsSuccess<T extends Record<string, (...args: any) => any>> = {
+		[Key in keyof T]: ExcludeActionFailure<Awaited<ReturnType<T[Key]>>>;
+	}[keyof T];
+
+	type ExtractActionFailure<T> =
+		T extends ActionFailure<infer X> ? (X extends void ? never : X) : never;
+
+	type ActionsFailure<T extends Record<string, (...args: any) => any>> = {
+		[Key in keyof T]: Exclude<ExtractActionFailure<Awaited<ReturnType<T[Key]>>>, void>;
+	}[keyof T];
+
+	type S = ActionsSuccess<ActionsExport>['transaction'];
+	type V = ActionsFailure<ActionsExport>;
+
 	const formProps: FormOptions = {
 		onUpdate: async ({ result }) => {
 			if (result.type !== 'success') return;
+
+			const transaction = result.data.transaction;
 
 			await goto('/app/transactions');
 		}

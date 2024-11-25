@@ -31,6 +31,15 @@
 		[key in keyof z.infer<typeof RecurrentTransactionSchema>]?: boolean;
 	}>({});
 
+	if (baseFormData) {
+		data.data.name = baseFormData.name;
+		data.data.value = baseFormData.value;
+		data.data.purchasedAt = baseFormData.purchasedAt;
+		data.data.firstInstallmentAt = baseFormData.firstInstallmentAt;
+		data.data.tags = baseFormData.tags;
+		data.data.category = baseFormData.category;
+	}
+
 	const form = superForm(data, {
 		dataType: 'json',
 		validators: zod(RecurrentTransactionSchema),

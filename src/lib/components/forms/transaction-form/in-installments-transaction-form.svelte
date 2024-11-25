@@ -40,6 +40,15 @@
 
 	let { form: data, formProps, action, baseFormData = $bindable() }: Props = $props();
 
+	if (baseFormData) {
+		data.data.name = baseFormData.name;
+		data.data.value = baseFormData.value;
+		data.data.purchasedAt = baseFormData.purchasedAt;
+		data.data.firstInstallmentAt = baseFormData.firstInstallmentAt;
+		data.data.tags = baseFormData.tags;
+		data.data.category = baseFormData.category;
+	}
+
 	let touched = $state<{
 		[key in keyof z.infer<typeof InInstallmentsTransactionSchema>]?: boolean;
 	}>({});
@@ -52,15 +61,6 @@
 	});
 
 	const { form: formData, enhance, submitting } = form;
-
-	if (baseFormData) {
-		$formData.name = baseFormData.name;
-		$formData.value = baseFormData.value;
-		$formData.purchasedAt = baseFormData.purchasedAt;
-		$formData.firstInstallmentAt = baseFormData.firstInstallmentAt;
-		$formData.tags = baseFormData.tags;
-		$formData.category = baseFormData.category;
-	}
 
 	function updateFormDataEndsAt() {
 		if ($formData.numberOfInstallments === null || $formData.numberOfInstallments === undefined) {

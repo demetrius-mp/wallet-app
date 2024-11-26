@@ -1,6 +1,6 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
 
-import { prisma } from '$lib/server/prisma';
+import { queryTransactions } from '$lib/server/db/queries/transaction';
 import { dates } from '$lib/utils/dates';
 
 export const GET: RequestHandler = async (_e) => {
@@ -10,38 +10,8 @@ export const GET: RequestHandler = async (_e) => {
 		.startOf('month')
 		.toDate();
 
-	const transactions = await prisma.transaction.findMany({
-		include: {
-			paymentConfirmations: {
-				select: {
-					paidAt: true
-				},
-				orderBy: {
-					paidAt: 'desc'
-				},
-				take: 1
-			}
-		},
-		where: {
-			OR: [
-				{
-					lastInstallmentAt: {
-						gte: thisMonth
-					}
-				},
-				{
-					lastInstallmentAt: null
-				}
-			]
-		},
-		orderBy: [
-			{
-				purchasedAt: 'desc'
-			},
-			{
-				name: 'asc'
-			}
-		]
+	const transactions = await queryTransactions({
+		minLastInstallmentAt: thisMonth
 	});
 
 	return json({ transactions });

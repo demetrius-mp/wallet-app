@@ -4,7 +4,12 @@ import { zod } from 'sveltekit-superforms/adapters';
 
 import { convertTransaction } from '$lib/models/transaction';
 import { ConfirmPaymentSchema } from '$lib/schemas';
-import { prisma } from '$lib/server/prisma';
+import { getTransaction } from '$lib/server/db/queries/transaction';
+import {
+	createPaymentConfirmation,
+	deleteAllPaymentConfirmations,
+	deletePaymentConfirmation
+} from '$lib/server/db/queries/transaction-payment-confirmation';
 import { dates } from '$lib/utils/dates';
 
 import type { Actions } from './$types';
@@ -13,23 +18,7 @@ export const actions = {
 	async default(e) {
 		const transactionId = parseInt(e.params.transactionId);
 
-		const dbTransaction = await prisma.transaction.findFirst({
-			where: {
-				id: transactionId
-			},
-			include: {
-				paymentConfirmations: {
-					select: {
-						id: true,
-						paidAt: true
-					},
-					orderBy: {
-						paidAt: 'desc'
-					},
-					take: 1
-				}
-			}
-		});
+		const dbTransaction = await getTransaction({ id: transactionId });
 
 		if (!dbTransaction) {
 			error(404, { message: 'Transação não encontrada' });
@@ -55,14 +44,9 @@ export const actions = {
 			// transaction has no payment confirmation
 			if (!lastPaymentConfirmation) {
 				// so we set the payment confirmation as the first installment date
-				const paymentConfirmation = await prisma.transactionPaymentConfirmation.create({
-					data: {
-						transactionId,
-						paidAt: transaction.firstInstallmentAt
-					},
-					select: {
-						paidAt: true
-					}
+				const paymentConfirmation = await createPaymentConfirmation({
+					transactionId,
+					paidAt: transaction.firstInstallmentAt
 				});
 
 				return {
@@ -73,11 +57,7 @@ export const actions = {
 
 			// if the transaction has payment confirmations
 			// we remove every confirmation
-			await prisma.transactionPaymentConfirmation.deleteMany({
-				where: {
-					transactionId: transaction.id
-				}
-			});
+			await deleteAllPaymentConfirmations({ transactionId });
 
 			return {
 				message: 'Pagamento removido com sucesso',
@@ -95,14 +75,9 @@ export const actions = {
 					});
 				}
 
-				const paymentConfirmation = await prisma.transactionPaymentConfirmation.create({
-					data: {
-						transactionId: transaction.id,
-						paidAt: transaction.firstInstallmentAt
-					},
-					select: {
-						paidAt: true
-					}
+				const paymentConfirmation = await createPaymentConfirmation({
+					transactionId,
+					paidAt: transaction.firstInstallmentAt
 				});
 
 				return {
@@ -115,13 +90,9 @@ export const actions = {
 
 			// can only remove the last payment confirmation
 			if (lastPaymentConfirmationAt.isSame(paymentDate)) {
-				await prisma.transactionPaymentConfirmation.delete({
-					where: {
-						transactionId_paidAt: {
-							paidAt: paymentDate.toDate(),
-							transactionId: transaction.id
-						}
-					}
+				await deletePaymentConfirmation({
+					transactionId,
+					paidAt: paymentDate.toDate()
 				});
 
 				const paymentConfirmations: { paidAt: Date }[] = [];
@@ -140,14 +111,9 @@ export const actions = {
 
 			// can only confirm payments that are subsequent to the last payment confirmation
 			if (paymentDate.isSame(lastPaymentConfirmationAt.add(1, 'month'))) {
-				const paymentConfirmation = await prisma.transactionPaymentConfirmation.create({
-					data: {
-						transactionId: transaction.id,
-						paidAt: paymentDate.toDate()
-					},
-					select: {
-						paidAt: true
-					}
+				const paymentConfirmation = await createPaymentConfirmation({
+					transactionId,
+					paidAt: paymentDate.toDate()
 				});
 
 				return {
@@ -185,14 +151,9 @@ export const actions = {
 					});
 				}
 
-				const paymentConfirmation = await prisma.transactionPaymentConfirmation.create({
-					data: {
-						transactionId: transaction.id,
-						paidAt: transaction.firstInstallmentAt
-					},
-					select: {
-						paidAt: true
-					}
+				const paymentConfirmation = await createPaymentConfirmation({
+					transactionId,
+					paidAt: transaction.firstInstallmentAt
 				});
 
 				return {
@@ -205,13 +166,9 @@ export const actions = {
 
 			// can only remove the last payment confirmation
 			if (lastPaymentConfirmationAt.isSame(paymentDate)) {
-				await prisma.transactionPaymentConfirmation.delete({
-					where: {
-						transactionId_paidAt: {
-							paidAt: paymentDate.toDate(),
-							transactionId: transaction.id
-						}
-					}
+				await deletePaymentConfirmation({
+					transactionId,
+					paidAt: paymentDate.toDate()
 				});
 
 				const paymentConfirmations: { paidAt: Date }[] = [];
@@ -239,11 +196,9 @@ export const actions = {
 				// at 11/2024
 				!nextAvailableConfirmation.isAfter(lastInstallmentAt)
 			) {
-				const paymentConfirmation = await prisma.transactionPaymentConfirmation.create({
-					data: {
-						transactionId: transaction.id,
-						paidAt: paymentDate.toDate()
-					}
+				const paymentConfirmation = await createPaymentConfirmation({
+					transactionId,
+					paidAt: paymentDate.toDate()
 				});
 
 				return {

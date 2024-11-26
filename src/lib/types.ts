@@ -9,6 +9,11 @@ export namespace Entities {
 	export type TransactionMode = (typeof TRANSACTION_MODES)[number];
 	export type TransactionCategory = (typeof TRANSACTION_CATEGORIES)[number];
 
+	export type PaymentConfirmation = {
+		id: number;
+		paidAt: Date;
+	};
+
 	export type BaseTransaction = {
 		id: number;
 		name: string;

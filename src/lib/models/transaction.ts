@@ -1,4 +1,3 @@
-import type { Transaction } from '@prisma/client';
 import type { Dayjs } from 'dayjs';
 
 import type { Entities } from '$lib/types';
@@ -8,8 +7,21 @@ import { isSubsetOf } from '$lib/utils/set';
 export const TRANSACTION_MODES = ['RECURRENT', 'SINGLE_PAYMENT', 'IN_INSTALLMENTS'] as const;
 export const TRANSACTION_CATEGORIES = ['INCOME', 'EXPENSE'] as const;
 
+type DbTransaction = {
+	id: number;
+	value: number;
+	name: string;
+	mode: Entities.TransactionMode;
+	purchasedAt: Date;
+	firstInstallmentAt: Date;
+	numberOfInstallments: number | null;
+	lastInstallmentAt: Date | null;
+	category: Entities.TransactionCategory;
+	tags: string[];
+};
+
 function convertRecurrentTransaction(
-	transaction: Transaction & { paymentConfirmations: { id: number; paidAt: Date }[] }
+	transaction: DbTransaction & { paymentConfirmations: Entities.PaymentConfirmation[] }
 ): Entities.RecurrentTransaction {
 	const lastPaymentConfirmation = transaction.paymentConfirmations.at(0)?.paidAt;
 
@@ -27,7 +39,7 @@ function convertRecurrentTransaction(
 }
 
 function convertSinglePaymentTransaction(
-	transaction: Transaction & { paymentConfirmations: { id: number; paidAt: Date }[] }
+	transaction: DbTransaction & { paymentConfirmations: Entities.PaymentConfirmation[] }
 ): Entities.SinglePaymentTransaction {
 	if (transaction.numberOfInstallments !== 1 || transaction.lastInstallmentAt === null) {
 		throw new Error('Invalid Single Payment Transaction');
@@ -53,7 +65,7 @@ function convertSinglePaymentTransaction(
 }
 
 function convertInInstallmentsTransaction(
-	transaction: Transaction & { paymentConfirmations: { id: number; paidAt: Date }[] }
+	transaction: DbTransaction & { paymentConfirmations: Entities.PaymentConfirmation[] }
 ): Entities.InInstallmentsTransaction {
 	if (transaction.numberOfInstallments === null || transaction.lastInstallmentAt === null) {
 		throw new Error('Invalid In Installments Transaction');
@@ -81,7 +93,7 @@ function convertInInstallmentsTransaction(
 }
 
 export function convertTransaction(
-	transaction: Transaction & { paymentConfirmations: { id: number; paidAt: Date }[] }
+	transaction: DbTransaction & { paymentConfirmations: Entities.PaymentConfirmation[] }
 ): Entities.Transaction {
 	switch (transaction.mode) {
 		case 'RECURRENT':

@@ -18,9 +18,11 @@
 		"@sveltejs/vite-plugin-svelte": "^4.0.0",
 		"@types/eslint": "^9.6.0",
 		"@types/node": "^22.9.1",
+		"@types/pg": "^8.11.10",
 		"autoprefixer": "^10.4.20",
 		"bits-ui": "^1.0.0-next.63",
 		"clsx": "^2.1.1",
+		"drizzle-kit": "^0.28.1",
 		"eslint": "^9.7.0",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-prettier": "^5.2.1",
@@ -33,7 +35,6 @@
 		"prettier": "^3.3.2",
 		"prettier-plugin-svelte": "^3.2.6",
 		"prettier-plugin-tailwindcss": "^0.6.5",
-		"prisma": "^5.22.0",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
 		"svelte-sonner": "^0.3.28",
@@ -51,13 +52,12 @@
 	"dependencies": {
 		"@melt-ui/pp": "^0.3.2",
 		"@melt-ui/svelte": "^0.86.0",
-		"@prisma/client": "^5.22.0",
 		"@svelte-put/shortcut": "^4.0.0",
 		"@tailwindcss/typography": "^0.5.15",
 		"dayjs": "^1.11.13",
-		"devalue": "^5.1.1"
-	},
-	"prisma": {
-		"seed": "tsx prisma/seed.ts"
+		"devalue": "^5.1.1",
+		"dotenv": "^16.4.5",
+		"drizzle-orm": "^0.36.4",
+		"pg": "^8.13.1"
 	}
 }

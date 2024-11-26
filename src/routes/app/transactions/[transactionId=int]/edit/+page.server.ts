@@ -7,7 +7,7 @@ import {
 	RecurrentTransactionSchema,
 	SinglePaymentTransactionSchema
 } from '$lib/schemas';
-import { prisma } from '$lib/server/prisma';
+import { getTransaction, updateTransaction } from '$lib/server/db/queries/transaction';
 import { transformDayMonthYearDate, transformMonthYearDate } from '$lib/utils/dates';
 
 import type { Actions, PageServerLoad } from './$types';
@@ -15,23 +15,7 @@ import type { Actions, PageServerLoad } from './$types';
 export const load = (async (e) => {
 	const transactionId = parseInt(e.params.transactionId);
 
-	const transaction = await prisma.transaction.findFirst({
-		where: {
-			id: transactionId
-		},
-		include: {
-			paymentConfirmations: {
-				select: {
-					id: true,
-					paidAt: true
-				},
-				take: 1,
-				orderBy: {
-					paidAt: 'desc'
-				}
-			}
-		}
-	});
+	const transaction = await getTransaction({ id: transactionId });
 
 	if (!transaction) {
 		error(404, { message: 'Transação não encontrada' });
@@ -52,19 +36,7 @@ export const actions = {
 			return fail(400, { form });
 		}
 
-		const existingTransaction = await prisma.transaction.findFirst({
-			where: {
-				id: transactionId
-			},
-			include: {
-				paymentConfirmations: {
-					select: {
-						id: true
-					},
-					take: 1
-				}
-			}
-		});
+		const existingTransaction = await getTransaction({ id: transactionId });
 
 		if (!existingTransaction) {
 			error(404, { message: 'Transação não encontrada' });
@@ -76,16 +48,12 @@ export const actions = {
 
 		const { data } = form;
 
-		const transaction = await prisma.transaction.update({
-			where: {
-				id: transactionId
-			},
-			data: {
-				...data,
-				purchasedAt: transformDayMonthYearDate(data.purchasedAt),
-				firstInstallmentAt: transformMonthYearDate(data.firstInstallmentAt),
-				tags: Array.from(data.tags)
-			}
+		const transaction = await updateTransaction({
+			id: transactionId,
+			...data,
+			purchasedAt: transformDayMonthYearDate(data.purchasedAt),
+			firstInstallmentAt: transformMonthYearDate(data.firstInstallmentAt),
+			tags: Array.from(data.tags)
 		});
 
 		return {
@@ -102,19 +70,7 @@ export const actions = {
 			return fail(400, { form });
 		}
 
-		const existingTransaction = await prisma.transaction.findFirst({
-			where: {
-				id: transactionId
-			},
-			include: {
-				paymentConfirmations: {
-					select: {
-						id: true
-					},
-					take: 1
-				}
-			}
-		});
+		const existingTransaction = await getTransaction({ id: transactionId });
 
 		if (!existingTransaction) {
 			error(404, { message: 'Transação não encontrada' });
@@ -126,17 +82,13 @@ export const actions = {
 
 		const { data } = form;
 
-		const transaction = await prisma.transaction.update({
-			where: {
-				id: transactionId
-			},
-			data: {
-				...data,
-				purchasedAt: transformDayMonthYearDate(data.purchasedAt),
-				firstInstallmentAt: transformMonthYearDate(data.firstInstallmentAt),
-				lastInstallmentAt: transformMonthYearDate(data.lastInstallmentAt),
-				tags: Array.from(data.tags)
-			}
+		const transaction = await updateTransaction({
+			id: transactionId,
+			...data,
+			purchasedAt: transformDayMonthYearDate(data.purchasedAt),
+			firstInstallmentAt: transformMonthYearDate(data.firstInstallmentAt),
+			lastInstallmentAt: transformMonthYearDate(data.lastInstallmentAt),
+			tags: Array.from(data.tags)
 		});
 
 		return {
@@ -153,19 +105,7 @@ export const actions = {
 			return fail(400, { form });
 		}
 
-		const existingTransaction = await prisma.transaction.findFirst({
-			where: {
-				id: transactionId
-			},
-			include: {
-				paymentConfirmations: {
-					select: {
-						id: true
-					},
-					take: 1
-				}
-			}
-		});
+		const existingTransaction = await getTransaction({ id: transactionId });
 
 		if (!existingTransaction) {
 			error(404, { message: 'Transação não encontrada' });
@@ -177,17 +117,13 @@ export const actions = {
 
 		const { data } = form;
 
-		const transaction = await prisma.transaction.update({
-			where: {
-				id: transactionId
-			},
-			data: {
-				...data,
-				purchasedAt: transformDayMonthYearDate(data.purchasedAt),
-				firstInstallmentAt: transformMonthYearDate(data.firstInstallmentAt),
-				lastInstallmentAt: transformMonthYearDate(data.lastInstallmentAt),
-				tags: Array.from(data.tags)
-			}
+		const transaction = await updateTransaction({
+			id: transactionId,
+			...data,
+			purchasedAt: transformDayMonthYearDate(data.purchasedAt),
+			firstInstallmentAt: transformMonthYearDate(data.firstInstallmentAt),
+			lastInstallmentAt: transformMonthYearDate(data.lastInstallmentAt),
+			tags: Array.from(data.tags)
 		});
 
 		return {
@@ -204,19 +140,7 @@ export const actions = {
 			return fail(400, { form });
 		}
 
-		const existingTransaction = await prisma.transaction.findFirst({
-			where: {
-				id: transactionId
-			},
-			include: {
-				paymentConfirmations: {
-					select: {
-						id: true
-					},
-					take: 1
-				}
-			}
-		});
+		const existingTransaction = await getTransaction({ id: transactionId });
 
 		if (!existingTransaction) {
 			error(404, { message: 'Transação não encontrada' });
@@ -228,16 +152,12 @@ export const actions = {
 
 		const { data } = form;
 
-		const transaction = await prisma.transaction.update({
-			where: {
-				id: transactionId
-			},
-			data: {
-				name: data.name,
-				value: data.value,
-				category: data.category,
-				tags: Array.from(data.tags)
-			}
+		const transaction = await updateTransaction({
+			id: transactionId,
+			name: data.name,
+			value: data.value,
+			category: data.category,
+			tags: Array.from(data.tags)
 		});
 
 		return {

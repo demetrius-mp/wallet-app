@@ -6,7 +6,7 @@ import {
 	RecurrentTransactionSchema,
 	SinglePaymentTransactionSchema
 } from '$lib/schemas';
-import { prisma } from '$lib/server/prisma';
+import { createTransaction } from '$lib/server/db/queries/transaction';
 import { transformDayMonthYearDate, transformMonthYearDate } from '$lib/utils/dates';
 
 import type { Actions } from './$types';
@@ -21,13 +21,11 @@ export const actions = {
 
 		const { data } = form;
 
-		const transaction = await prisma.transaction.create({
-			data: {
-				...data,
-				purchasedAt: transformDayMonthYearDate(data.purchasedAt),
-				firstInstallmentAt: transformMonthYearDate(data.firstInstallmentAt),
-				tags: Array.from(data.tags)
-			}
+		const transaction = await createTransaction({
+			...data,
+			purchasedAt: transformDayMonthYearDate(data.purchasedAt),
+			firstInstallmentAt: transformMonthYearDate(data.firstInstallmentAt),
+			tags: Array.from(data.tags)
 		});
 
 		return {
@@ -44,14 +42,12 @@ export const actions = {
 
 		const { data } = form;
 
-		const transaction = await prisma.transaction.create({
-			data: {
-				...data,
-				purchasedAt: transformDayMonthYearDate(data.purchasedAt),
-				firstInstallmentAt: transformMonthYearDate(data.firstInstallmentAt),
-				lastInstallmentAt: transformMonthYearDate(data.lastInstallmentAt),
-				tags: Array.from(data.tags)
-			}
+		const transaction = await createTransaction({
+			...data,
+			purchasedAt: transformDayMonthYearDate(data.purchasedAt),
+			firstInstallmentAt: transformMonthYearDate(data.firstInstallmentAt),
+			lastInstallmentAt: transformMonthYearDate(data.lastInstallmentAt),
+			tags: Array.from(data.tags)
 		});
 
 		return {
@@ -68,14 +64,12 @@ export const actions = {
 
 		const { data } = form;
 
-		const transaction = await prisma.transaction.create({
-			data: {
-				...data,
-				purchasedAt: transformDayMonthYearDate(data.purchasedAt),
-				firstInstallmentAt: transformDayMonthYearDate(data.firstInstallmentAt),
-				lastInstallmentAt: transformMonthYearDate(data.lastInstallmentAt),
-				tags: Array.from(data.tags)
-			}
+		const transaction = await createTransaction({
+			...data,
+			purchasedAt: transformDayMonthYearDate(data.purchasedAt),
+			firstInstallmentAt: transformDayMonthYearDate(data.firstInstallmentAt),
+			lastInstallmentAt: transformMonthYearDate(data.lastInstallmentAt),
+			tags: Array.from(data.tags)
 		});
 
 		return {

@@ -25,7 +25,7 @@
 		<Input
 			name="term"
 			bind:value={searchInputValue}
-			class="pr-8"
+			class="pr-12"
 			type="text"
 			placeholder="Pesquise por nome"
 		/>
@@ -47,7 +47,7 @@
 		{/if}
 	</div>
 
-	<Button type="submit">
+	<Button type="submit" variant="secondary">
 		<SearchIcon />
 		<span class="hidden sm:inline"> Buscar </span>
 	</Button>

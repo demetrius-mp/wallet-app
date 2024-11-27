@@ -42,6 +42,7 @@ export async function getTransaction(data: { id: number }) {
 
 export async function createTransaction(data: {
 	mode: 'RECURRENT' | 'SINGLE_PAYMENT' | 'IN_INSTALLMENTS';
+	userId: number;
 	name: string;
 	value: number;
 	purchasedAt: Date;

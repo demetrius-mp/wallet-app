@@ -1,5 +1,8 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
+
+import type { SessionValidationResult } from '$lib/server/session';
+
 declare global {
 	namespace App {
 		type FlashType = 'success' | 'info' | 'warning' | 'error' | 'message';
@@ -9,7 +12,9 @@ declare global {
 			options?: import('svelte-sonner').ExternalToast;
 		};
 		// interface Error {}
-		// interface Locals {}
+		interface Locals {
+			session: SessionValidationResult | null;
+		}
 		// interface PageData {}
 		// interface PageState {}
 		// interface Platform {}

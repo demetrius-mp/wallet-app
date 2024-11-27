@@ -9,6 +9,19 @@ export namespace Entities {
 	export type TransactionMode = (typeof TRANSACTION_MODES)[number];
 	export type TransactionCategory = (typeof TRANSACTION_CATEGORIES)[number];
 
+	export type User = {
+		id: number;
+		name: string;
+		email: string;
+		password: string;
+	};
+
+	export type Session = {
+		id: string;
+		userId: number;
+		expiresAt: Date;
+	};
+
 	export type PaymentConfirmation = {
 		id: number;
 		paidAt: Date;

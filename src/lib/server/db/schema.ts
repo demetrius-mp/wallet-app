@@ -1,5 +1,15 @@
 import { relations, sql } from 'drizzle-orm';
-import { date, integer, pgEnum, pgTable, real, text, unique, varchar } from 'drizzle-orm/pg-core';
+import {
+	date,
+	integer,
+	pgEnum,
+	pgTable,
+	real,
+	text,
+	timestamp,
+	unique,
+	varchar
+} from 'drizzle-orm/pg-core';
 
 export const usersTable = pgTable('users', {
 	id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
@@ -12,6 +22,17 @@ export const usersTable = pgTable('users', {
 export const usersRelations = relations(usersTable, ({ many }) => ({
 	transactions: many(transactionsTable)
 }));
+
+export const sessionsTable = pgTable('session', {
+	id: text('id').primaryKey(),
+	userId: integer('user_id')
+		.notNull()
+		.references(() => usersTable.id),
+	expiresAt: timestamp('expires_at', {
+		withTimezone: true,
+		mode: 'date'
+	}).notNull()
+});
 
 export const transactionModeEnum = pgEnum('transactionMode', [
 	'RECURRENT',

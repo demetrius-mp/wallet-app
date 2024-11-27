@@ -1,6 +1,18 @@
 import { relations, sql } from 'drizzle-orm';
 import { date, integer, pgEnum, pgTable, real, text, unique, varchar } from 'drizzle-orm/pg-core';
 
+export const usersTable = pgTable('users', {
+	id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+
+	email: varchar('email', { length: 255 }).notNull(),
+	name: varchar('name', { length: 255 }).notNull(),
+	password: varchar('password', { length: 255 }).notNull()
+});
+
+export const usersRelations = relations(usersTable, ({ many }) => ({
+	transactions: many(transactionsTable)
+}));
+
 export const transactionModeEnum = pgEnum('transactionMode', [
 	'RECURRENT',
 	'SINGLE_PAYMENT',
@@ -12,6 +24,7 @@ export const transactionCategoryEnum = pgEnum('transactionCategory', ['EXPENSE',
 export const transactionsTable = pgTable('transactions', {
 	id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
 
+	userId: integer('user_id').notNull(),
 	mode: transactionModeEnum('mode').notNull(),
 	name: varchar('name', { length: 255 }).notNull(),
 	value: real('value').notNull(),
@@ -26,8 +39,12 @@ export const transactionsTable = pgTable('transactions', {
 		.default(sql`ARRAY[]::text[]`)
 });
 
-export const transactionsRelations = relations(transactionsTable, ({ many }) => ({
-	paymentConfirmations: many(transactionPaymentConfirmationsTable)
+export const transactionsRelations = relations(transactionsTable, ({ many, one }) => ({
+	paymentConfirmations: many(transactionPaymentConfirmationsTable),
+	user: one(usersTable, {
+		fields: [transactionsTable.userId],
+		references: [usersTable.id]
+	})
 }));
 
 export const transactionPaymentConfirmationsTable = pgTable(

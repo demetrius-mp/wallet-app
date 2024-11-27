@@ -3,7 +3,6 @@
 	import type { z } from 'zod';
 
 	import { goto } from '$app/navigation';
-	import Container from '$lib/components/container.svelte';
 	import InInstallmentsTransactionForm from '$lib/components/forms/transaction-form/in-installments-transaction-form.svelte';
 	import RecurrentTransactionForm from '$lib/components/forms/transaction-form/recurrent-transaction-form.svelte';
 	import SinglePaymentTransactionForm from '$lib/components/forms/transaction-form/single-payment-transaction-form.svelte';
@@ -46,44 +45,42 @@
 
 <MetaTags title="Nova transação" />
 
-<Container>
-	<PageHeading
-		title="Nova transação"
-		description="Crie uma nova transação informando os dados abaixo."
-		returnTo={{
-			href: '/app/transactions',
-			label: 'Transações'
-		}}
+<PageHeading
+	title="Nova transação"
+	description="Crie uma nova transação informando os dados abaixo."
+	returnTo={{
+		href: '/app/transactions',
+		label: 'Transações'
+	}}
+/>
+
+<Tabs.Root bind:value={transactionMode}>
+	<Tabs.List class="grid w-full grid-cols-3">
+		<Tabs.Trigger value="SINGLE_PAYMENT">À vista</Tabs.Trigger>
+		<Tabs.Trigger value="RECURRENT">Recorrente</Tabs.Trigger>
+		<Tabs.Trigger value="IN_INSTALLMENTS">Parcelada</Tabs.Trigger>
+	</Tabs.List>
+</Tabs.Root>
+
+{#if transactionMode === 'IN_INSTALLMENTS'}
+	<InInstallmentsTransactionForm
+		bind:baseFormData
+		form={data.inInstallmentsTransactionForm}
+		action="?/inInstallments"
+		{formProps}
 	/>
-
-	<Tabs.Root bind:value={transactionMode}>
-		<Tabs.List class="grid w-full grid-cols-3">
-			<Tabs.Trigger value="SINGLE_PAYMENT">À vista</Tabs.Trigger>
-			<Tabs.Trigger value="RECURRENT">Recorrente</Tabs.Trigger>
-			<Tabs.Trigger value="IN_INSTALLMENTS">Parcelada</Tabs.Trigger>
-		</Tabs.List>
-	</Tabs.Root>
-
-	{#if transactionMode === 'IN_INSTALLMENTS'}
-		<InInstallmentsTransactionForm
-			bind:baseFormData
-			form={data.inInstallmentsTransactionForm}
-			action="?/inInstallments"
-			{formProps}
-		/>
-	{:else if transactionMode === 'RECURRENT'}
-		<RecurrentTransactionForm
-			bind:baseFormData
-			form={data.recurrentTransactionForm}
-			action="?/recurrent"
-			{formProps}
-		/>
-	{:else if transactionMode === 'SINGLE_PAYMENT'}
-		<SinglePaymentTransactionForm
-			bind:baseFormData
-			form={data.singlePaymentTransactionForm}
-			action="?/singlePayment"
-			{formProps}
-		/>
-	{/if}
-</Container>
+{:else if transactionMode === 'RECURRENT'}
+	<RecurrentTransactionForm
+		bind:baseFormData
+		form={data.recurrentTransactionForm}
+		action="?/recurrent"
+		{formProps}
+	/>
+{:else if transactionMode === 'SINGLE_PAYMENT'}
+	<SinglePaymentTransactionForm
+		bind:baseFormData
+		form={data.singlePaymentTransactionForm}
+		action="?/singlePayment"
+		{formProps}
+	/>
+{/if}

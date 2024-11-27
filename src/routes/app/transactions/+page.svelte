@@ -5,7 +5,6 @@
 	import { SvelteSet } from 'svelte/reactivity';
 
 	import { goto } from '$app/navigation';
-	import Container from '$lib/components/container.svelte';
 	import FloatingButton from '$lib/components/floating-button.svelte';
 	import MetaTags from '$lib/components/meta-tags.svelte';
 	import { filterTransactions, getBill } from '$lib/models/transaction';
@@ -135,42 +134,40 @@
 
 <MetaTags title="Transações" />
 
-<Container>
-	<Heading {bill} bind:date={searchParams.date} minCalendarDate={minDate} />
+<Heading {bill} bind:date={searchParams.date} minCalendarDate={minDate} />
 
-	<div class="mt-4">
-		<SearchBar bind:term={searchParams.term} />
-	</div>
+<div class="mt-4">
+	<SearchBar bind:term={searchParams.term} />
+</div>
 
-	<div class="mt-4">
-		<Filters
-			availableTags={$availableTags}
-			selectedTags={searchParams.tags}
-			transactionCategoryTags={searchParams.transactionCategoryTags}
-			transactionModeTags={searchParams.transactionModeTags}
-			onToggleTag={toggleTag}
-			onToggleTransactionCategoryTag={toggleTransactionCategoryTag}
-			onToggleTransactionModeTag={toggleTransactionModeTag}
-		/>
-	</div>
+<div class="mt-4">
+	<Filters
+		availableTags={$availableTags}
+		selectedTags={searchParams.tags}
+		transactionCategoryTags={searchParams.transactionCategoryTags}
+		transactionModeTags={searchParams.transactionModeTags}
+		onToggleTag={toggleTag}
+		onToggleTransactionCategoryTag={toggleTransactionCategoryTag}
+		onToggleTransactionModeTag={toggleTransactionModeTag}
+	/>
+</div>
 
-	<Separator class="my-4" />
+<Separator class="my-4" />
 
-	<ul class="space-y-4">
-		{#each filteredTransactions as transaction (transaction.id)}
-			<li>
-				<TransactionCard
-					{transaction}
-					date={searchParams.date}
-					selectedTags={searchParams.tags}
-					transactionModeTags={searchParams.transactionModeTags}
-					onToggleTag={toggleTag}
-					onToggleTransactionModeTag={toggleTransactionModeTag}
-				/>
-			</li>
-		{/each}
-	</ul>
-</Container>
+<ul class="space-y-4">
+	{#each filteredTransactions as transaction (transaction.id)}
+		<li>
+			<TransactionCard
+				{transaction}
+				date={searchParams.date}
+				selectedTags={searchParams.tags}
+				transactionModeTags={searchParams.transactionModeTags}
+				onToggleTag={toggleTag}
+				onToggleTransactionModeTag={toggleTransactionModeTag}
+			/>
+		</li>
+	{/each}
+</ul>
 
 <FloatingButton spacerClass="mt-16">
 	<Button href="/app/transactions/new" class="size-12 rounded-full">

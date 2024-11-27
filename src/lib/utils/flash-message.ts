@@ -17,7 +17,7 @@ const FLASH_MESSAGE_COOKIE_OPTIONS = {
  * @param options Options for the flash message
  * @param event Server event
  */
-export function setFlashMessage(options: App.FlashMessage, event: { cookies: Cookies }) {
+export function setFlashMessage(event: { cookies: Cookies }, options: App.FlashMessage) {
 	const stringified = stringify(options);
 
 	event.cookies.set(FLASH_MESSAGE_COOKIE_NAME, stringified, {

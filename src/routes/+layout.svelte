@@ -38,7 +38,7 @@
 			</Button>
 			<div class="flex items-center space-x-4">
 				<!-- <ModeToggle /> -->
-				<Button href="/app/transactions">Entrar</Button>
+				<Button variant="outline" href="/app/transactions">Entrar</Button>
 			</div>
 		</nav>
 	</Container>

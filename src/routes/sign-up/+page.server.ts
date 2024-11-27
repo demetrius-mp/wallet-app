@@ -2,9 +2,9 @@ import { redirect } from '@sveltejs/kit';
 import { fail, setError, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
-import { SignInSchema, SignUpSchema } from '$lib/schemas';
+import { SignUpSchema } from '$lib/schemas';
 import { createUser, getUserByEmail } from '$lib/server/db/queries/user';
-import { verifyPasswordHash } from '$lib/server/password';
+import { generatePasswordHash } from '$lib/server/password';
 import { setFlashMessage } from '$lib/utils/flash-message';
 
 import type { Actions, PageServerLoad } from './$types';
@@ -16,7 +16,7 @@ export const load = (async (e) => {
 		redirect(302, '/app');
 	}
 
-	const form = await superValidate(zod(SignInSchema));
+	const form = await superValidate(zod(SignUpSchema));
 
 	return {
 		form
@@ -25,7 +25,7 @@ export const load = (async (e) => {
 
 export const actions = {
 	async default(e) {
-		const form = await superValidate(e, zod(SignInSchema));
+		const form = await superValidate(e, zod(SignUpSchema));
 
 		if (!form.valid) {
 			return fail(400, { form });
@@ -33,17 +33,17 @@ export const actions = {
 
 		const { data } = form;
 
-		const user = await getUserByEmail(data.email);
+		const existingUser = await getUserByEmail(data.email);
 
-		if (!user) {
-			return setError(form, 'Email ou senha incorretos');
+		if (existingUser) {
+			return setError(form, 'email', 'Email já cadastrado');
 		}
 
-		const passwordMatches = await verifyPasswordHash(data.password, user.password);
-
-		if (!passwordMatches) {
-			return setError(form, 'Email ou senha incorretos');
-		}
+		await createUser({
+			email: data.email,
+			name: data.name,
+			password: await generatePasswordHash(data.password)
+		});
 
 		setFlashMessage(e, {
 			type: 'success',

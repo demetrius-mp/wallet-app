@@ -2,6 +2,34 @@ import { z } from 'zod';
 
 import { checkDateIsValid, dates } from '$lib/utils/dates';
 
+export const SignUpSchema = z
+	.object({
+		name: z.string().min(3),
+		email: z.string().email(),
+		password: z.string().min(8),
+		confirmPassword: z.string().min(8)
+	})
+	.superRefine((data, ctx) => {
+		if (data.password !== data.confirmPassword) {
+			ctx.addIssue({
+				code: 'custom',
+				path: ['confirmPassword'],
+				message: 'As senhas não são iguais'
+			});
+
+			ctx.addIssue({
+				code: 'custom',
+				path: ['password'],
+				message: 'As senhas não são iguais'
+			});
+		}
+	});
+
+export const SignInSchema = z.object({
+	email: z.string().email(),
+	password: z.string().min(8)
+});
+
 function getToday() {
 	return dates.tz(new Date(), 'America/Campo_Grande').utc(true).startOf('day');
 }

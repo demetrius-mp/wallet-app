@@ -7,7 +7,7 @@
 	import RecurrentTransactionForm from '$lib/components/forms/transaction-form/recurrent-transaction-form.svelte';
 	import SinglePaymentTransactionForm from '$lib/components/forms/transaction-form/single-payment-transaction-form.svelte';
 	import MetaTags from '$lib/components/meta-tags.svelte';
-	import PageHeading from '$lib/components/page-heading.svelte';
+	import * as PageHeading from '$lib/components/page-heading';
 	import { convertTransaction } from '$lib/models/transaction.js';
 	import type { BaseTransactionSchema } from '$lib/schemas.js';
 	import * as Tabs from '$lib/shadcn/ui/tabs';
@@ -45,14 +45,15 @@
 
 <MetaTags title="Nova transação" />
 
-<PageHeading
-	title="Nova transação"
-	description="Crie uma nova transação informando os dados abaixo."
-	returnTo={{
-		href: '/app/transactions',
-		label: 'Transações'
-	}}
-/>
+<PageHeading.Root>
+	<PageHeading.Return href="/app/transactions">Transações</PageHeading.Return>
+
+	<PageHeading.Title>Nova transação</PageHeading.Title>
+
+	<PageHeading.Description>
+		Crie uma nova transação informando os dados abaixo.
+	</PageHeading.Description>
+</PageHeading.Root>
 
 <Tabs.Root bind:value={transactionMode}>
 	<Tabs.List class="grid w-full grid-cols-3">

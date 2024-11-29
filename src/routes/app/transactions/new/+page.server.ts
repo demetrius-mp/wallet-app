@@ -7,12 +7,14 @@ import {
 	SinglePaymentTransactionSchema
 } from '$lib/schemas';
 import { createTransaction } from '$lib/server/db/queries/transaction';
+import { ensureAuth } from '$lib/server/ensure-auth';
 import { transformDayMonthYearDate, transformMonthYearDate } from '$lib/utils/dates';
 
 import type { Actions } from './$types';
 
 export const actions = {
 	async recurrent(e) {
+		const session = ensureAuth(e);
 		const form = await superValidate(e, zod(RecurrentTransactionSchema));
 
 		if (!form.valid) {
@@ -23,6 +25,7 @@ export const actions = {
 
 		const transaction = await createTransaction({
 			...data,
+			userId: session.userId,
 			purchasedAt: transformDayMonthYearDate(data.purchasedAt),
 			firstInstallmentAt: transformMonthYearDate(data.firstInstallmentAt),
 			tags: Array.from(data.tags)
@@ -34,6 +37,7 @@ export const actions = {
 		};
 	},
 	async inInstallments(e) {
+		const session = ensureAuth(e);
 		const form = await superValidate(e, zod(InInstallmentsTransactionSchema));
 
 		if (!form.valid) {
@@ -44,6 +48,7 @@ export const actions = {
 
 		const transaction = await createTransaction({
 			...data,
+			userId: session.userId,
 			purchasedAt: transformDayMonthYearDate(data.purchasedAt),
 			firstInstallmentAt: transformMonthYearDate(data.firstInstallmentAt),
 			lastInstallmentAt: transformMonthYearDate(data.lastInstallmentAt),
@@ -56,6 +61,7 @@ export const actions = {
 		};
 	},
 	async singlePayment(e) {
+		const session = ensureAuth(e);
 		const form = await superValidate(e, zod(SinglePaymentTransactionSchema));
 
 		if (!form.valid) {
@@ -66,6 +72,7 @@ export const actions = {
 
 		const transaction = await createTransaction({
 			...data,
+			userId: session.userId,
 			purchasedAt: transformDayMonthYearDate(data.purchasedAt),
 			firstInstallmentAt: transformDayMonthYearDate(data.firstInstallmentAt),
 			lastInstallmentAt: transformMonthYearDate(data.lastInstallmentAt),

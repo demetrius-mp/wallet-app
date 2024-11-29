@@ -2,7 +2,7 @@
 	import { superForm } from 'sveltekit-superforms';
 
 	import MetaTags from '$lib/components/meta-tags.svelte';
-	import PageHeading from '$lib/components/page-heading.svelte';
+	import * as PageHeading from '$lib/components/page-heading';
 	import Button from '$lib/shadcn/ui/button/button.svelte';
 	import * as Form from '$lib/shadcn/ui/form';
 	import Input from '$lib/shadcn/ui/input/input.svelte';
@@ -16,7 +16,13 @@
 
 <MetaTags title="Cadastro" />
 
-<PageHeading title="Cadastro" description="Cadastre-se na plataforma" />
+<PageHeading.Root>
+	<PageHeading.Title>Cadastro</PageHeading.Title>
+
+	<PageHeading.Description>
+		Quer acessar sua conta? <a href="/sign-in" class="underline">Clique aqui</a>.
+	</PageHeading.Description>
+</PageHeading.Root>
 
 <form method="POST" use:enhance class="flex flex-col gap-2">
 	<Form.Field {form} name="email">

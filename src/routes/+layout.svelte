@@ -1,11 +1,15 @@
 <script lang="ts">
 	import '../app.css';
 
+	import LogOutIcon from 'lucide-svelte/icons/log-out';
+	import UserIcon from 'lucide-svelte/icons/user';
 	import WalletIcon from 'lucide-svelte/icons/wallet';
 	import { toast } from 'svelte-sonner';
 
+	import { enhance } from '$app/forms';
 	import Container from '$lib/components/container.svelte';
 	import Button from '$lib/shadcn/ui/button/button.svelte';
+	import * as DropdownMenu from '$lib/shadcn/ui/dropdown-menu';
 	import { Toaster } from '$lib/shadcn/ui/sonner/index.js';
 	import { toasterIsMounted } from '$lib/shadcn/ui/sonner/sonner.svelte';
 	import { clearFlashMessage } from '$lib/utils/flash-message';
@@ -38,7 +42,35 @@
 			</Button>
 			<div class="flex items-center space-x-4">
 				<!-- <ModeToggle /> -->
-				<Button variant="outline" href="/app/transactions">Entrar</Button>
+				{#if data.session}
+					<DropdownMenu.Root>
+						<DropdownMenu.Trigger class="size-10 rounded-full">
+							{#snippet child({ props })}
+								<Button {...props} variant="ghost" size="icon">
+									<UserIcon class="!size-5" />
+								</Button>
+							{/snippet}
+						</DropdownMenu.Trigger>
+
+						<DropdownMenu.Content align="end">
+							<DropdownMenu.Item
+								class="w-full cursor-pointer text-destructive data-[highlighted]:text-destructive"
+							>
+								{#snippet child({ props })}
+									<form method="post" action="/sign-out" use:enhance>
+										<button {...props} type="submit">
+											<LogOutIcon class="mr-2 size-4" />
+
+											<span>Sair</span>
+										</button>
+									</form>
+								{/snippet}
+							</DropdownMenu.Item>
+						</DropdownMenu.Content>
+					</DropdownMenu.Root>
+				{:else}
+					<Button variant="outline" href="/app/transactions">Entrar</Button>
+				{/if}
 			</div>
 		</nav>
 	</Container>

@@ -2,9 +2,10 @@ import { redirect } from '@sveltejs/kit';
 import { fail, setError, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
-import { SignInSchema, SignUpSchema } from '$lib/schemas';
-import { createUser, getUserByEmail } from '$lib/server/db/queries/user';
+import { SignInSchema } from '$lib/schemas';
+import { getUserByEmail } from '$lib/server/db/queries/user';
 import { verifyPasswordHash } from '$lib/server/password';
+import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/session';
 import { setFlashMessage } from '$lib/utils/flash-message';
 
 import type { Actions, PageServerLoad } from './$types';
@@ -45,9 +46,14 @@ export const actions = {
 			return setError(form, 'Email ou senha incorretos');
 		}
 
+		const token = generateSessionToken();
+		const session = await createSession(token, user.id);
+
+		setSessionTokenCookie(e, token, session.expiresAt);
+
 		setFlashMessage(e, {
 			type: 'success',
-			message: 'Conta criada com sucesso! Faça login para continuar.'
+			message: 'Bem vind@!'
 		});
 
 		redirect(302, '/sign-in');

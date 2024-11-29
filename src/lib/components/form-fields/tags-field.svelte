@@ -38,6 +38,8 @@
 		$customTagsStore = Array.from(tags).map((t) => ({ id: t, value: t }));
 	};
 
+	setTags(value);
+
 	let inputRef: HTMLInputElement | null = $state(null);
 
 	const {
@@ -45,7 +47,6 @@
 		states: { tags }
 	} = createTagsInput({
 		tags: customTagsStore,
-		defaultTags: Array.from(value),
 		unique: true,
 		add(tag) {
 			if (tag.includes(',')) {

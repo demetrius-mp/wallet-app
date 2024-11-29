@@ -28,7 +28,7 @@ export async function createSession(token: string, userId: number): Promise<Enti
 	return session;
 }
 
-export async function validateSessionToken(token: string): Promise<SessionValidationResult | null> {
+export async function validateSessionToken(token: string): Promise<Entities.AuthSession | null> {
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 
 	const result = await db
@@ -93,5 +93,3 @@ export function deleteSessionTokenCookie(event: RequestEvent): void {
 		maxAge: 0
 	});
 }
-
-export type SessionValidationResult = Entities.Session & { user: Entities.User };

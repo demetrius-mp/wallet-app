@@ -22,6 +22,10 @@ export namespace Entities {
 		expiresAt: Date;
 	};
 
+	export type AuthSession = Session & {
+		user: User;
+	};
+
 	export type PaymentConfirmation = {
 		id: number;
 		paidAt: Date;

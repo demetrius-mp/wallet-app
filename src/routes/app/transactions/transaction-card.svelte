@@ -103,7 +103,7 @@
 						class={cn(
 							buttonVariants({ variant: 'ghost' }),
 							'size-8 p-0',
-							paymentIsConfirmed && 'text-green-800 hover:text-green-800'
+							paymentIsConfirmed && 'text-success hover:text-success'
 						)}
 						type="submit"
 					>
@@ -212,7 +212,7 @@
 					class={cn(
 						'flex items-center gap-1 text-sm',
 						transaction.paidInstallments === transaction.numberOfInstallments
-							? 'text-green-800'
+							? 'text-success'
 							: 'text-muted-foreground'
 					)}
 				>

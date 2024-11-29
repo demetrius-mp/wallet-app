@@ -4,6 +4,7 @@
 	import LogOutIcon from 'lucide-svelte/icons/log-out';
 	import UserIcon from 'lucide-svelte/icons/user';
 	import WalletIcon from 'lucide-svelte/icons/wallet';
+	import { ModeWatcher } from 'mode-watcher';
 	import { toast } from 'svelte-sonner';
 
 	import { enhance } from '$app/forms';
@@ -26,6 +27,7 @@
 	});
 </script>
 
+<ModeWatcher />
 <Toaster />
 
 <header class="border-b">

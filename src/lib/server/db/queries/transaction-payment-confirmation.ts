@@ -63,5 +63,5 @@ export async function deleteAllPaymentConfirmations(data: { transactionId: numbe
 
 	await db
 		.delete(transactionPaymentConfirmationsTable)
-		.where(eq(transactionPaymentConfirmationsTable.id, transactionId));
+		.where(eq(transactionPaymentConfirmationsTable.transactionId, transactionId));
 }

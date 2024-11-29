@@ -2,9 +2,12 @@
 	import '../app.css';
 
 	import LogOutIcon from 'lucide-svelte/icons/log-out';
+	import MoonIcon from 'lucide-svelte/icons/moon';
+	import SunIcon from 'lucide-svelte/icons/sun';
 	import UserIcon from 'lucide-svelte/icons/user';
 	import WalletIcon from 'lucide-svelte/icons/wallet';
 	import { ModeWatcher } from 'mode-watcher';
+	import { mode, setMode } from 'mode-watcher';
 	import { toast } from 'svelte-sonner';
 
 	import { enhance } from '$app/forms';
@@ -55,6 +58,29 @@
 						</DropdownMenu.Trigger>
 
 						<DropdownMenu.Content align="end">
+							<DropdownMenu.Group>
+								<DropdownMenu.GroupHeading>Tema</DropdownMenu.GroupHeading>
+
+								<DropdownMenu.Separator />
+								<DropdownMenu.RadioGroup
+									value={$mode}
+									onValueChange={(value) => {
+										setMode(value as 'light' | 'dark');
+									}}
+								>
+									<DropdownMenu.RadioItem value="light">
+										<SunIcon class="mr-2 size-4" />
+										Claro
+									</DropdownMenu.RadioItem>
+									<DropdownMenu.RadioItem value="dark">
+										<MoonIcon class="mr-2 size-4" />
+										Escuro
+									</DropdownMenu.RadioItem>
+								</DropdownMenu.RadioGroup>
+							</DropdownMenu.Group>
+
+							<DropdownMenu.Separator />
+
 							<DropdownMenu.Item
 								class="w-full cursor-pointer text-destructive data-[highlighted]:text-destructive"
 							>

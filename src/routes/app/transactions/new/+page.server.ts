@@ -74,7 +74,7 @@ export const actions = {
 			...data,
 			userId: session.userId,
 			purchasedAt: transformDayMonthYearDate(data.purchasedAt),
-			firstInstallmentAt: transformDayMonthYearDate(data.firstInstallmentAt),
+			firstInstallmentAt: transformMonthYearDate(data.firstInstallmentAt),
 			lastInstallmentAt: transformMonthYearDate(data.lastInstallmentAt),
 			tags: Array.from(data.tags)
 		});

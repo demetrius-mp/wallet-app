@@ -12,6 +12,7 @@
 	import type { BaseTransactionSchema } from '$lib/schemas.js';
 	import * as Tabs from '$lib/shadcn/ui/tabs';
 	import type { Entities, GetActionResultFromActions } from '$lib/types.js';
+	import { dates } from '$lib/utils/dates';
 
 	import { useTransactionsContext } from '../transactions-provider.svelte';
 
@@ -21,7 +22,23 @@
 
 	let baseFormData = $state<z.infer<typeof BaseTransactionSchema> | undefined>(undefined);
 
-	const { addTransaction } = useTransactionsContext();
+	const { addTransaction, getTransactionById } = useTransactionsContext();
+
+	if (data.copyFrom !== null) {
+		const transaction = getTransactionById(data.copyFrom);
+
+		if (transaction) {
+			console.log(transaction.tags);
+			baseFormData = {
+				name: transaction.name,
+				category: transaction.category,
+				firstInstallmentAt: dates().utc(true).format('YYYY-MM-DD'),
+				purchasedAt: dates().utc(true).format('YYYY-MM-DD'),
+				tags: transaction.tags,
+				value: transaction.value
+			};
+		}
+	}
 
 	const formProps: FormOptions = {
 		onUpdate: async (e) => {

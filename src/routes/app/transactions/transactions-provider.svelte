@@ -1,6 +1,6 @@
 <script lang="ts" module>
 	import { getContext, setContext, type Snippet } from 'svelte';
-	import { derived, writable } from 'svelte/store';
+	import { derived, get, writable } from 'svelte/store';
 
 	import { convertTransaction } from '$lib/models/transaction';
 	import type { Entities } from '$lib/types';
@@ -108,11 +108,16 @@
 			});
 		}
 
+		function getTransactionById(transactionId: Entities.Transaction['id']) {
+			return get(transactions).find((t) => t.id === transactionId);
+		}
+
 		return setContext(TRANSACTIONS_CONTEXT_KEY, {
 			status,
 			transactions,
 			availableTags,
 			fetchTransactions,
+			getTransactionById,
 			addTransaction,
 			deleteTransaction,
 			updateTransaction,

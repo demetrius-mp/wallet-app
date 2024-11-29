@@ -1,7 +1,9 @@
 <script lang="ts">
 	import type { Dayjs } from 'dayjs';
 	import CheckIcon from 'lucide-svelte/icons/check';
+	import CopyIcon from 'lucide-svelte/icons/copy';
 	import EllipsisVerticalIcon from 'lucide-svelte/icons/ellipsis-vertical';
+	import RepeatIcon from 'lucide-svelte/icons/repeat';
 	import SquareIcon from 'lucide-svelte/icons/square';
 	import SquareCheckIcon from 'lucide-svelte/icons/square-check';
 	import SquarePenIcon from 'lucide-svelte/icons/square-pen';
@@ -134,6 +136,20 @@
 									<a href="/app/transactions/{transaction.id}" {...props}>
 										<SquarePenIcon class="mr-2 size-4" />
 										<span>Editar</span>
+									</a>
+								{/snippet}
+							</DropdownMenu.Item>
+
+							<DropdownMenu.Item class="cursor-pointer">
+								<CopyIcon class="mr-2 size-4" />
+								<span>Copiar</span>
+							</DropdownMenu.Item>
+
+							<DropdownMenu.Item class="cursor-pointer">
+								{#snippet child({ props })}
+									<a href="/app/transactions/new?copyFrom={transaction.id}" {...props}>
+										<RepeatIcon class="mr-2 size-4" />
+										<span>Repetir</span>
 									</a>
 								{/snippet}
 							</DropdownMenu.Item>

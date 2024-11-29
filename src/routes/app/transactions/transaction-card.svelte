@@ -45,7 +45,13 @@
 
 	const { deleteTransaction, setTransactionPaymentConfirmation } = useTransactionsContext();
 
-	const handleDelete: import('./[transactionId=int]/delete/$types').SubmitFunction = () => {
+	const handleDelete: import('./[transactionId=int]/delete/$types').SubmitFunction = ({
+		cancel
+	}) => {
+		if (!confirm('Você tem certeza que deseja excluir essa transação?')) {
+			return cancel();
+		}
+
 		return async ({ update, result }) => {
 			if (result.type !== 'success') {
 				return await update();

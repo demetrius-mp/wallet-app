@@ -50,6 +50,6 @@ export const actions = {
 			message: 'Conta criada com sucesso! Faça login para continuar.'
 		});
 
-		redirect(302, '/sign-in');
+		redirect(302, '/auth/sign-in');
 	}
 } satisfies Actions;

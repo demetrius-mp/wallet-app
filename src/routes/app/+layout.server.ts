@@ -6,7 +6,7 @@ export const load = (async (e) => {
 	const { session } = await e.parent();
 
 	if (!session) {
-		redirect(302, '/sign-in');
+		redirect(302, '/auth/sign-in');
 	}
 
 	return {

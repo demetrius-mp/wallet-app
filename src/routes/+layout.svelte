@@ -85,7 +85,7 @@
 								class="w-full cursor-pointer text-destructive data-[highlighted]:text-destructive"
 							>
 								{#snippet child({ props })}
-									<form method="post" action="/sign-out" use:enhance>
+									<form method="post" action="/auth/sign-out" use:enhance>
 										<button {...props} type="submit">
 											<LogOutIcon class="mr-2 size-4" />
 

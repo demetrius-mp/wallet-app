@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm';
 
 import { db } from '$lib/server/db';
-import { transactionPaymentConfirmationsTable, transactionsTable } from '$lib/server/db/schema';
+import { transactionPaymentConfirmationsTable } from '$lib/server/db/schema';
 
 export async function createPaymentConfirmation(data: { transactionId: number; paidAt: Date }) {
 	const { transactionId, paidAt } = data;
@@ -61,5 +61,7 @@ export async function deletePaymentConfirmation(data: {
 export async function deleteAllPaymentConfirmations(data: { transactionId: number }) {
 	const { transactionId } = data;
 
-	await db.delete(transactionsTable).where(eq(transactionsTable.id, transactionId));
+	await db
+		.delete(transactionPaymentConfirmationsTable)
+		.where(eq(transactionPaymentConfirmationsTable.id, transactionId));
 }

@@ -111,6 +111,10 @@
 
 		searchParams.date = searchParams.date.subtract(1, 'month');
 	}
+
+	async function handleNavigateToCreateTransaction() {
+		await goto('/app/transactions/new');
+	}
 </script>
 
 <svelte:document
@@ -128,6 +132,14 @@
 			modifier: ['ctrl', 'meta'],
 			preventDefault: true,
 			callback: handlePreviousMonthShortcut
+		}
+	}}
+	use:shortcut={{
+		trigger: {
+			key: ',',
+			modifier: ['ctrl', 'meta'],
+			preventDefault: true,
+			callback: handleNavigateToCreateTransaction
 		}
 	}}
 />

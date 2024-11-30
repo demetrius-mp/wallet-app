@@ -5,9 +5,13 @@
 		getLocalTimeZone,
 		parseDate
 	} from '@internationalized/date';
+	import { isAfter, isBefore } from '@melt-ui/svelte/internal/helpers/date';
 	import type { ControlAttrs } from 'formsnap';
 	import CalendarIcon from 'lucide-svelte/icons/calendar';
+	import MinusIcon from 'lucide-svelte/icons/minus';
+	import PlusIcon from 'lucide-svelte/icons/plus';
 
+	import Button from '$lib/shadcn/ui/button/button.svelte';
 	import { buttonVariants } from '$lib/shadcn/ui/button/index.js';
 	import { Calendar } from '$lib/shadcn/ui/calendar/index.js';
 	import * as Popover from '$lib/shadcn/ui/popover/index.js';
@@ -44,18 +48,64 @@
 </script>
 
 <Popover.Root>
-	<Popover.Trigger
-		{...props}
-		class={cn(
-			buttonVariants({ variant: 'outline' }),
-			'w-full justify-start pl-3 text-left font-normal',
-			!dateValue && 'text-muted-foreground'
-		)}
-	>
-		{dateValue ? df.format(dateValue.toDate(getLocalTimeZone())) : noDateSelectedText}
+	<div class="relative">
+		<div
+			class={cn(
+				'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+			)}
+		>
+			{dateValue ? df.format(dateValue.toDate(getLocalTimeZone())) : noDateSelectedText}
+		</div>
 
-		<CalendarIcon class="ml-auto size-4 opacity-50" />
-	</Popover.Trigger>
+		<div class="absolute right-1 top-1">
+			<Button
+				onclick={() => {
+					if (!dateValue) return;
+
+					const newDate = dateValue.subtract({ days: 1 });
+
+					if (minValue && isBefore(newDate, minValue)) return;
+
+					value = newDate.toString();
+					onValueChange?.(newDate);
+				}}
+				variant="ghost"
+				size="icon"
+				class="size-8"
+			>
+				<MinusIcon />
+			</Button>
+
+			<Button
+				onclick={() => {
+					if (!dateValue) return;
+
+					const newDate = dateValue.add({ days: 1 });
+
+					if (maxValue && isAfter(newDate, maxValue)) return;
+
+					value = newDate.toString();
+					onValueChange?.(newDate);
+				}}
+				variant="ghost"
+				size="icon"
+				class="size-8"
+			>
+				<PlusIcon />
+			</Button>
+
+			<Popover.Trigger
+				{...props}
+				class={cn(
+					buttonVariants({ variant: 'ghost', size: 'icon', className: 'size-8' }),
+					!dateValue && 'text-muted-foreground'
+				)}
+			>
+				<CalendarIcon />
+			</Popover.Trigger>
+		</div>
+	</div>
+
 	<Popover.Content class="w-auto p-0" side="top" align="end">
 		<Calendar
 			locale="pt-BR"

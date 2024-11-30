@@ -35,7 +35,7 @@
 
 <div class="flex items-center justify-between">
 	<div>
-		<h2 class="text-2xl">Contas</h2>
+		<h2 class="text-2xl">Lembretes</h2>
 		<span class="text-sm">
 			do mês
 			{date.format('MM/YYYY')}

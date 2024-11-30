@@ -133,7 +133,7 @@
 						<DropdownMenu.Group>
 							<DropdownMenu.Item class="cursor-pointer">
 								{#snippet child({ props })}
-									<a href="/app/transactions/{transaction.id}" {...props}>
+									<a href="/app/transactions/{transaction.id}/edit" {...props}>
 										<SquarePenIcon class="mr-2 size-4" />
 										<span>Editar</span>
 									</a>

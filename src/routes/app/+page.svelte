@@ -26,7 +26,7 @@
 	</Card.Root>
 
 	<Card.Root class="p-6">
-		<a href="/app/bill-reminders">
+		<a href="/app/reminders">
 			<Card.Header class="p-0">
 				<Card.Title>Ver lembretes</Card.Title>
 

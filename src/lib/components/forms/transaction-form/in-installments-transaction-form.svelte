@@ -127,12 +127,7 @@
 						</Popover.Content>
 					</Popover.Root>
 				</Form.Label>
-				<Input
-					class={$formData.mode === 'IN_INSTALLMENTS' ? 'pr-10' : ''}
-					{...props}
-					type="number"
-					bind:value={$formData.value}
-				/>
+				<Input class="pr-10" {...props} type="number" bind:value={$formData.value} />
 
 				<div class="absolute right-1 top-7">
 					<Tooltip.Provider delayDuration={100}>

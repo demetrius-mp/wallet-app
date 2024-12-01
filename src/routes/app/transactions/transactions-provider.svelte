@@ -2,7 +2,7 @@
 	import { getContext, setContext, type Snippet } from 'svelte';
 	import { derived, get, writable } from 'svelte/store';
 
-	import { convertTransaction } from '$lib/models/transaction';
+	import { convertTransaction, getPaidInstallments } from '$lib/models/transaction';
 	import type { Entities } from '$lib/types';
 	import { dates } from '$lib/utils/dates';
 
@@ -97,10 +97,19 @@
 			return transactions.update((v) => {
 				return v.map((t) => {
 					if (t.id === transactionId) {
-						return {
+						const updatedTransaction: Entities.Transaction = {
 							...t,
 							lastPaymentConfirmationAt: paymentConfirmation
 						};
+
+						if (updatedTransaction.mode === 'IN_INSTALLMENTS') {
+							updatedTransaction.paidInstallments = getPaidInstallments({
+								lastPaymentConfirmation: paymentConfirmation,
+								firstInstallmentAt: updatedTransaction.firstInstallmentAt
+							});
+						}
+
+						return updatedTransaction;
 					}
 
 					return t;

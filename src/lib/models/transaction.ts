@@ -64,6 +64,16 @@ function convertSinglePaymentTransaction(
 	};
 }
 
+export function getPaidInstallments(props: {
+	lastPaymentConfirmation: Date | null;
+	firstInstallmentAt: Date;
+}) {
+	const { lastPaymentConfirmation, firstInstallmentAt } = props;
+	return lastPaymentConfirmation
+		? getDatesDiffInMonths(lastPaymentConfirmation, firstInstallmentAt) + 1
+		: 0;
+}
+
 function convertInInstallmentsTransaction(
 	transaction: DbTransaction & { paymentConfirmations: Entities.PaymentConfirmation[] }
 ): Entities.InInstallmentsTransaction {

@@ -53,7 +53,7 @@ export const actions = {
 			...data,
 			purchasedAt: transformDayMonthYearDate(data.purchasedAt),
 			firstInstallmentAt: transformMonthYearDate(data.firstInstallmentAt),
-			tags: Array.from(data.tags)
+			tags: Array.from(data.tags).toSorted()
 		});
 
 		return {
@@ -88,7 +88,7 @@ export const actions = {
 			purchasedAt: transformDayMonthYearDate(data.purchasedAt),
 			firstInstallmentAt: transformMonthYearDate(data.firstInstallmentAt),
 			lastInstallmentAt: transformMonthYearDate(data.lastInstallmentAt),
-			tags: Array.from(data.tags)
+			tags: Array.from(data.tags).toSorted()
 		});
 
 		return {
@@ -123,7 +123,7 @@ export const actions = {
 			purchasedAt: transformDayMonthYearDate(data.purchasedAt),
 			firstInstallmentAt: transformMonthYearDate(data.firstInstallmentAt),
 			lastInstallmentAt: transformMonthYearDate(data.lastInstallmentAt),
-			tags: Array.from(data.tags)
+			tags: Array.from(data.tags).toSorted()
 		});
 
 		return {
@@ -157,7 +157,7 @@ export const actions = {
 			name: data.name,
 			value: data.value,
 			category: data.category,
-			tags: Array.from(data.tags)
+			tags: Array.from(data.tags).toSorted()
 		});
 
 		return {

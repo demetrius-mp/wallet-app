@@ -28,7 +28,7 @@ export const actions = {
 			userId: session.userId,
 			purchasedAt: transformDayMonthYearDate(data.purchasedAt),
 			firstInstallmentAt: transformMonthYearDate(data.firstInstallmentAt),
-			tags: Array.from(data.tags)
+			tags: Array.from(data.tags).toSorted()
 		});
 
 		return {
@@ -52,7 +52,7 @@ export const actions = {
 			purchasedAt: transformDayMonthYearDate(data.purchasedAt),
 			firstInstallmentAt: transformMonthYearDate(data.firstInstallmentAt),
 			lastInstallmentAt: transformMonthYearDate(data.lastInstallmentAt),
-			tags: Array.from(data.tags)
+			tags: Array.from(data.tags).toSorted()
 		});
 
 		return {
@@ -76,7 +76,7 @@ export const actions = {
 			purchasedAt: transformDayMonthYearDate(data.purchasedAt),
 			firstInstallmentAt: transformMonthYearDate(data.firstInstallmentAt),
 			lastInstallmentAt: transformMonthYearDate(data.lastInstallmentAt),
-			tags: Array.from(data.tags)
+			tags: Array.from(data.tags).toSorted()
 		});
 
 		return {

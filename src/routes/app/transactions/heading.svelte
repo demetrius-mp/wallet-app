@@ -27,7 +27,7 @@
 </script>
 
 <div class="flex items-baseline gap-2">
-	<h2 class="text-2xl">Saldo</h2>
+	<h2 class="text-2xl">Total</h2>
 	<small>
 		({date.format('MM/YYYY')})
 	</small>

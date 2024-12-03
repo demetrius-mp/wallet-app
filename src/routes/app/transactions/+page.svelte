@@ -47,7 +47,7 @@
 	const { transactions, availableTags } = useTransactionsContext();
 
 	let filteredTransactions = $derived(filterTransactions($transactions, searchParams));
-	let bill = $derived(getBill(filteredTransactions, searchParams.date));
+	let bill = $derived(getBill(filteredTransactions));
 
 	function toggleTag(tag: string) {
 		if (searchParams.tags.has(tag)) {

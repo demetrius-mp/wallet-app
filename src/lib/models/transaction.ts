@@ -217,12 +217,8 @@ export function checkPaymentIsConfirmed(transaction: Entities.Transaction, date:
 	return !paidAt.isBefore(date, 'month');
 }
 
-export function getBill(transactions: Entities.Transaction[], date: Dayjs) {
+export function getBill(transactions: Entities.Transaction[]) {
 	return transactions.reduce((acc, transaction) => {
-		if (!checkPaymentIsConfirmed(transaction, date)) {
-			return acc;
-		}
-
 		const value = transaction.category === 'EXPENSE' ? -transaction.value : transaction.value;
 
 		return acc + value;

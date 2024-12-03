@@ -15,9 +15,15 @@
 		date: Dayjs;
 		bill: number;
 		minCalendarDate: Dayjs;
+		onCopyTransactionsToClipboard: () => void;
 	};
 
-	let { date = $bindable(), bill, minCalendarDate }: Props = $props();
+	let {
+		date = $bindable(),
+		bill,
+		minCalendarDate,
+		onCopyTransactionsToClipboard
+	}: Props = $props();
 </script>
 
 <div class="flex items-baseline gap-2">
@@ -43,7 +49,7 @@
 	</div>
 
 	<div class="flex gap-2">
-		<Button variant="outline" class="size-12 rounded-full">
+		<Button onclick={onCopyTransactionsToClipboard} variant="outline" class="size-12 rounded-full">
 			<CopyIcon class="!size-6" />
 			<span class="sr-only"> Copiar transações </span>
 		</Button>

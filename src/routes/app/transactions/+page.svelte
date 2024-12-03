@@ -3,6 +3,7 @@
 	import type { Dayjs } from 'dayjs';
 	import PlusIcon from 'lucide-svelte/icons/plus';
 	import { SvelteSet } from 'svelte/reactivity';
+	import { toast } from 'svelte-sonner';
 
 	import { goto } from '$app/navigation';
 	import FloatingButton from '$lib/components/floating-button.svelte';
@@ -12,6 +13,7 @@
 	import Separator from '$lib/shadcn/ui/separator/separator.svelte';
 	import type { Entities } from '$lib/types.js';
 	import { dates } from '$lib/utils/dates.js';
+	import { formatCurrency } from '$lib/utils/format-currency';
 
 	import Filters from './filters.svelte';
 	import Heading from './heading.svelte';
@@ -115,6 +117,32 @@
 	async function handleNavigateToCreateTransaction() {
 		await goto('/app/transactions/new');
 	}
+
+	async function handleCopyTransactionsToClipboard() {
+		const initial = `Transações em ${searchParams.date.format('MM/YYYY')}\nValor total: ${formatCurrency(bill)}\n\n`;
+
+		const report = filteredTransactions
+			.reduce((acc, transaction) => {
+				let line = `${transaction.name} - ${formatCurrency(transaction.value)}\n`;
+
+				if (transaction.mode === 'SINGLE_PAYMENT') {
+					line += 'À vista';
+				} else if (transaction.mode === 'IN_INSTALLMENTS') {
+					line += `Parcela ${transaction.paidInstallments}/${transaction.numberOfInstallments}`;
+				} else if (transaction.mode === 'RECURRENT') {
+					line += 'Recorrente';
+				}
+
+				line += '\n';
+
+				return acc + line + '\n';
+			}, initial)
+			.trim();
+
+		await navigator.clipboard.writeText(report);
+
+		toast.success('Transações copiadas para a área de transferência');
+	}
 </script>
 
 <svelte:document
@@ -146,7 +174,12 @@
 
 <MetaTags title="Transações" />
 
-<Heading {bill} bind:date={searchParams.date} minCalendarDate={minDate} />
+<Heading
+	onCopyTransactionsToClipboard={handleCopyTransactionsToClipboard}
+	{bill}
+	bind:date={searchParams.date}
+	minCalendarDate={minDate}
+/>
 
 <div class="mt-4">
 	<SearchBar bind:term={searchParams.term} />

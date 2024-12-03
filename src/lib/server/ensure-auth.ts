@@ -11,7 +11,7 @@ export function ensureAuth(e: RequestEvent) {
 			message: 'Você precisa estar autenticado para acessar essa página.'
 		});
 
-		redirect(302, '/sign-in');
+		redirect(302, '/auth/sign-in');
 	}
 
 	return session;

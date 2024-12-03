@@ -14,17 +14,17 @@
 	const { form: formData, enhance, submitting } = form;
 </script>
 
-<MetaTags title="Entrar" />
+<MetaTags title="Cadastro" />
 
 <PageHeading.Root>
-	<PageHeading.Title>Entrar</PageHeading.Title>
+	<PageHeading.Title>Cadastro</PageHeading.Title>
 
 	<PageHeading.Description>
-		Quer criar uma conta? <a href="/sign-up" class="underline">Clique aqui</a>.
+		Quer acessar sua conta? <a href="/auth/sign-in" class="underline">Clique aqui</a>.
 	</PageHeading.Description>
 </PageHeading.Root>
 
-<form method="POST" use:enhance class="mt-4 flex flex-col gap-2">
+<form method="POST" use:enhance class="flex flex-col gap-2">
 	<Form.Field {form} name="email">
 		<Form.Control>
 			{#snippet children({ props })}
@@ -33,7 +33,22 @@
 			{/snippet}
 		</Form.Control>
 
+		<Form.Description>Utilize seu melhor email.</Form.Description>
+
 		<Form.FieldErrors />
+	</Form.Field>
+
+	<Form.Field {form} name="name">
+		<Form.Control>
+			{#snippet children({ props })}
+				<Form.Label>Nome</Form.Label>
+				<Input {...props} type="text" autocomplete="name" bind:value={$formData.name} />
+			{/snippet}
+		</Form.Control>
+
+		<Form.FieldErrors />
+
+		<Form.Description>É como iremos nos referir a você.</Form.Description>
 	</Form.Field>
 
 	<Form.Field {form} name="password">
@@ -53,7 +68,24 @@
 		<Form.FieldErrors />
 	</Form.Field>
 
+	<Form.Field {form} name="confirmPassword">
+		<Form.Control>
+			{#snippet children({ props })}
+				<Form.Label>Confirmar senha</Form.Label>
+
+				<Input
+					{...props}
+					type="password"
+					autocomplete="new-password"
+					bind:value={$formData.confirmPassword}
+				/>
+			{/snippet}
+		</Form.Control>
+
+		<Form.FieldErrors />
+	</Form.Field>
+
 	<div class="flex justify-end">
-		<Button disabled={$submitting} type="submit">Entrar</Button>
+		<Button disabled={$submitting} type="submit">Cadastrar</Button>
 	</div>
 </form>

@@ -1,7 +1,7 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
 
-import type { SessionValidationResult } from '$lib/server/session';
+import type { Entities } from '$lib/types';
 
 declare global {
 	namespace App {
@@ -13,7 +13,7 @@ declare global {
 		};
 		// interface Error {}
 		interface Locals {
-			session: SessionValidationResult | null;
+			session: Entities.AuthSession | null;
 		}
 		// interface PageData {}
 		// interface PageState {}

@@ -9,7 +9,7 @@ import {
 
 import type { PageLoad } from './$types';
 
-export const load = (async () => {
+export const load = (async (e) => {
 	const [recurrentTransactionForm, singlePaymentTransactionForm, inInstallmentsTransactionForm] =
 		await Promise.all([
 			superValidate(zod(RecurrentTransactionSchema)),
@@ -17,9 +17,13 @@ export const load = (async () => {
 			superValidate(zod(InInstallmentsTransactionSchema))
 		]);
 
+	const copyFromParam = e.url.searchParams.get('copyFrom');
+	const copyFrom = copyFromParam !== null ? parseInt(copyFromParam) : null;
+
 	return {
 		recurrentTransactionForm,
 		singlePaymentTransactionForm,
-		inInstallmentsTransactionForm
+		inInstallmentsTransactionForm,
+		copyFrom
 	};
 }) satisfies PageLoad;

@@ -15,6 +15,7 @@
 	import { scale } from 'svelte/transition';
 
 	import { chipVariants } from '$lib/shadcn/custom/chip.svelte';
+	import Separator from '$lib/shadcn/ui/separator/separator.svelte';
 	import { cn } from '$lib/shadcn/utils';
 
 	type Props = ControlAttrs &
@@ -38,6 +39,8 @@
 		$customTagsStore = Array.from(tags).map((t) => ({ id: t, value: t }));
 	};
 
+	setTags(value);
+
 	let inputRef: HTMLInputElement | null = $state(null);
 
 	const {
@@ -45,7 +48,6 @@
 		states: { tags }
 	} = createTagsInput({
 		tags: customTagsStore,
-		defaultTags: Array.from(value),
 		unique: true,
 		add(tag) {
 			if (tag.includes(',')) {
@@ -74,7 +76,7 @@
 	use:melt={$root}
 	{...restProps}
 	class={cn(
-		'flex flex-wrap items-center rounded-md border focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
+		'flex flex-wrap items-center rounded-md border focus-within:ring-1 focus-within:ring-ring focus-within:ring-offset-1',
 		className
 	)}
 >
@@ -117,6 +119,8 @@
 				</div>
 			{/each}
 		</div>
+
+		<Separator />
 	{/if}
 
 	<input

@@ -4,6 +4,7 @@
 	import LogOutIcon from 'lucide-svelte/icons/log-out';
 	import MoonIcon from 'lucide-svelte/icons/moon';
 	import SunIcon from 'lucide-svelte/icons/sun';
+	import SunMoonIcon from 'lucide-svelte/icons/sun-moon';
 	import UserIcon from 'lucide-svelte/icons/user';
 	import WalletIcon from 'lucide-svelte/icons/wallet';
 	import { ModeWatcher } from 'mode-watcher';
@@ -33,6 +34,29 @@
 <ModeWatcher />
 <Toaster />
 
+{#snippet themeSwitch()}
+	<DropdownMenu.Group>
+		<DropdownMenu.GroupHeading>Tema</DropdownMenu.GroupHeading>
+
+		<DropdownMenu.Separator />
+		<DropdownMenu.RadioGroup
+			value={$mode}
+			onValueChange={(value) => {
+				setMode(value as 'light' | 'dark');
+			}}
+		>
+			<DropdownMenu.RadioItem value="light">
+				<SunIcon class="mr-2 size-4" />
+				Claro
+			</DropdownMenu.RadioItem>
+			<DropdownMenu.RadioItem value="dark">
+				<MoonIcon class="mr-2 size-4" />
+				Escuro
+			</DropdownMenu.RadioItem>
+		</DropdownMenu.RadioGroup>
+	</DropdownMenu.Group>
+{/snippet}
+
 <header class="border-b">
 	<Container class="my-0">
 		<nav class="flex h-16 items-center justify-between">
@@ -58,26 +82,7 @@
 						</DropdownMenu.Trigger>
 
 						<DropdownMenu.Content align="end">
-							<DropdownMenu.Group>
-								<DropdownMenu.GroupHeading>Tema</DropdownMenu.GroupHeading>
-
-								<DropdownMenu.Separator />
-								<DropdownMenu.RadioGroup
-									value={$mode}
-									onValueChange={(value) => {
-										setMode(value as 'light' | 'dark');
-									}}
-								>
-									<DropdownMenu.RadioItem value="light">
-										<SunIcon class="mr-2 size-4" />
-										Claro
-									</DropdownMenu.RadioItem>
-									<DropdownMenu.RadioItem value="dark">
-										<MoonIcon class="mr-2 size-4" />
-										Escuro
-									</DropdownMenu.RadioItem>
-								</DropdownMenu.RadioGroup>
-							</DropdownMenu.Group>
+							{@render themeSwitch()}
 
 							<DropdownMenu.Separator />
 
@@ -85,7 +90,7 @@
 								class="w-full cursor-pointer text-destructive data-[highlighted]:text-destructive"
 							>
 								{#snippet child({ props })}
-									<form method="post" action="/sign-out" use:enhance>
+									<form method="post" action="/auth/sign-out" use:enhance>
 										<button {...props} type="submit">
 											<LogOutIcon class="mr-2 size-4" />
 
@@ -97,6 +102,20 @@
 						</DropdownMenu.Content>
 					</DropdownMenu.Root>
 				{:else}
+					<DropdownMenu.Root>
+						<DropdownMenu.Trigger class="size-10 rounded-full">
+							{#snippet child({ props })}
+								<Button {...props} variant="ghost" size="icon">
+									<SunMoonIcon class="!size-5" />
+								</Button>
+							{/snippet}
+						</DropdownMenu.Trigger>
+
+						<DropdownMenu.Content align="end">
+							{@render themeSwitch()}
+						</DropdownMenu.Content>
+					</DropdownMenu.Root>
+
 					<Button variant="outline" href="/app/transactions">Entrar</Button>
 				{/if}
 			</div>

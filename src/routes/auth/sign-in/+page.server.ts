@@ -56,6 +56,6 @@ export const actions = {
 			message: 'Bem vind@!'
 		});
 
-		redirect(302, '/sign-in');
+		redirect(302, '/auth/sign-in');
 	}
 } satisfies Actions;

@@ -1,8 +1,8 @@
 <script lang="ts" module>
 	import { getContext, setContext, type Snippet } from 'svelte';
-	import { derived, writable } from 'svelte/store';
+	import { derived, get, writable } from 'svelte/store';
 
-	import { convertTransaction } from '$lib/models/transaction';
+	import { convertTransaction, getPaidInstallments } from '$lib/models/transaction';
 	import type { Entities } from '$lib/types';
 	import { dates } from '$lib/utils/dates';
 
@@ -97,10 +97,19 @@
 			return transactions.update((v) => {
 				return v.map((t) => {
 					if (t.id === transactionId) {
-						return {
+						const updatedTransaction: Entities.Transaction = {
 							...t,
 							lastPaymentConfirmationAt: paymentConfirmation
 						};
+
+						if (updatedTransaction.mode === 'IN_INSTALLMENTS') {
+							updatedTransaction.paidInstallments = getPaidInstallments({
+								lastPaymentConfirmation: paymentConfirmation,
+								firstInstallmentAt: updatedTransaction.firstInstallmentAt
+							});
+						}
+
+						return updatedTransaction;
 					}
 
 					return t;
@@ -108,11 +117,16 @@
 			});
 		}
 
+		function getTransactionById(transactionId: Entities.Transaction['id']) {
+			return get(transactions).find((t) => t.id === transactionId);
+		}
+
 		return setContext(TRANSACTIONS_CONTEXT_KEY, {
 			status,
 			transactions,
 			availableTags,
 			fetchTransactions,
+			getTransactionById,
 			addTransaction,
 			deleteTransaction,
 			updateTransaction,

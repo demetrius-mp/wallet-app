@@ -28,7 +28,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const routeId = event.route.id;
 
 	if (routeId?.startsWith('/app') && !session) {
-		redirect(302, '/sign-in');
+		redirect(302, '/auth/sign-in');
 	}
 
 	return resolve(event);

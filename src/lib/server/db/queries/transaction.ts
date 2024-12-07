@@ -24,6 +24,17 @@ export async function queryTransactions(filters: { minLastInstallmentAt: Date })
 	});
 }
 
+export async function checkTransactionExists(data: { id: number }) {
+	const result = await db.query.transactionsTable.findFirst({
+		columns: {
+			id: true
+		},
+		where: (t, { eq }) => eq(t.id, data.id)
+	});
+
+	return result !== undefined;
+}
+
 export async function getTransaction(data: { id: number }) {
 	return await db.query.transactionsTable.findFirst({
 		where: (t, { eq }) => eq(t.id, data.id),
@@ -78,4 +89,8 @@ export async function updateTransaction(data: {
 		.returning();
 
 	return updated[0];
+}
+
+export async function deleteTransaction(data: { id: number }) {
+	await db.delete(transactionsTable).where(eq(transactionsTable.id, data.id));
 }

@@ -53,7 +53,7 @@
 					<Command.Empty class="py-4">
 						Nenhum filtro
 						<br />
-						encontrada.
+						encontrado.
 					</Command.Empty>
 
 					<Command.Group heading="Tipos de transação">

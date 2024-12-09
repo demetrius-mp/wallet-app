@@ -16,6 +16,6 @@ export const actions = {
 			error(404, { message: 'Transação não encontrada' });
 		}
 
-		await deleteTransaction({ id: transactionId });
+		await repository.deleteOneTransaction({ id: transactionId });
 	}
 } satisfies Actions;

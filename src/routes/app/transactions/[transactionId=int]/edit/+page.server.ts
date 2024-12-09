@@ -7,7 +7,7 @@ import {
 	RecurrentTransactionSchema,
 	SinglePaymentTransactionSchema
 } from '$lib/schemas';
-import { getTransaction, updateTransaction } from '$lib/server/db/queries/transaction';
+import { TransactionRepository } from '$lib/server/db/repositories/transaction.repository';
 import { transformDayMonthYearDate, transformMonthYearDate } from '$lib/utils/dates';
 
 import type { Actions, PageServerLoad } from './$types';
@@ -15,7 +15,9 @@ import type { Actions, PageServerLoad } from './$types';
 export const load = (async (e) => {
 	const transactionId = parseInt(e.params.transactionId);
 
-	const transaction = await getTransaction({ id: transactionId });
+	const repository = new TransactionRepository();
+
+	const transaction = await repository.getOneTransaction({ id: transactionId });
 
 	if (!transaction) {
 		error(404, { message: 'Transação não encontrada' });
@@ -36,7 +38,9 @@ export const actions = {
 			return fail(400, { form });
 		}
 
-		const existingTransaction = await getTransaction({ id: transactionId });
+		const repository = new TransactionRepository();
+
+		const existingTransaction = await repository.getOneTransaction({ id: transactionId });
 
 		if (!existingTransaction) {
 			error(404, { message: 'Transação não encontrada' });
@@ -48,7 +52,7 @@ export const actions = {
 
 		const { data } = form;
 
-		const transaction = await updateTransaction({
+		const transaction = await repository.updateTransaction({
 			id: transactionId,
 			...data,
 			purchasedAt: transformDayMonthYearDate(data.purchasedAt),
@@ -70,7 +74,9 @@ export const actions = {
 			return fail(400, { form });
 		}
 
-		const existingTransaction = await getTransaction({ id: transactionId });
+		const repository = new TransactionRepository();
+
+		const existingTransaction = await repository.getOneTransaction({ id: transactionId });
 
 		if (!existingTransaction) {
 			error(404, { message: 'Transação não encontrada' });
@@ -82,7 +88,7 @@ export const actions = {
 
 		const { data } = form;
 
-		const transaction = await updateTransaction({
+		const transaction = await repository.updateTransaction({
 			id: transactionId,
 			...data,
 			purchasedAt: transformDayMonthYearDate(data.purchasedAt),
@@ -105,7 +111,9 @@ export const actions = {
 			return fail(400, { form });
 		}
 
-		const existingTransaction = await getTransaction({ id: transactionId });
+		const repository = new TransactionRepository();
+
+		const existingTransaction = await repository.getOneTransaction({ id: transactionId });
 
 		if (!existingTransaction) {
 			error(404, { message: 'Transação não encontrada' });
@@ -117,7 +125,7 @@ export const actions = {
 
 		const { data } = form;
 
-		const transaction = await updateTransaction({
+		const transaction = await repository.updateTransaction({
 			id: transactionId,
 			...data,
 			purchasedAt: transformDayMonthYearDate(data.purchasedAt),
@@ -140,7 +148,9 @@ export const actions = {
 			return fail(400, { form });
 		}
 
-		const existingTransaction = await getTransaction({ id: transactionId });
+		const repository = new TransactionRepository();
+
+		const existingTransaction = await repository.getOneTransaction({ id: transactionId });
 
 		if (!existingTransaction) {
 			error(404, { message: 'Transação não encontrada' });
@@ -152,7 +162,7 @@ export const actions = {
 
 		const { data } = form;
 
-		const transaction = await updateTransaction({
+		const transaction = await repository.updateTransaction({
 			id: transactionId,
 			name: data.name,
 			value: data.value,

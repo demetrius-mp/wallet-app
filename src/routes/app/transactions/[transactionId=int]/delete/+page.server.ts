@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
 
-import { checkTransactionExists, deleteTransaction } from '$lib/server/db/queries/transaction';
+import { TransactionRepository } from '$lib/server/db/repositories/transaction.repository';
 
 import type { Actions } from './$types';
 
@@ -8,7 +8,9 @@ export const actions = {
 	async default(e) {
 		const transactionId = parseInt(e.params.transactionId);
 
-		const transactionExists = checkTransactionExists({ id: transactionId });
+		const repository = new TransactionRepository();
+
+		const transactionExists = repository.transactionExists({ id: transactionId });
 
 		if (!transactionExists) {
 			error(404, { message: 'Transação não encontrada' });

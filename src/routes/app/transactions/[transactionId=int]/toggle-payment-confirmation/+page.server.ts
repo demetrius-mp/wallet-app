@@ -4,12 +4,8 @@ import { zod } from 'sveltekit-superforms/adapters';
 
 import { convertTransaction } from '$lib/models/transaction';
 import { ConfirmPaymentSchema } from '$lib/schemas';
-import { getTransaction } from '$lib/server/db/queries/transaction';
-import {
-	createPaymentConfirmation,
-	deleteAllPaymentConfirmations,
-	deletePaymentConfirmation
-} from '$lib/server/db/queries/transaction-payment-confirmation';
+import { TransactionRepository } from '$lib/server/db/repositories/transaction.repository';
+import { TransactionPaymentConfirmationRepository } from '$lib/server/db/repositories/transaction-payment-confirmation';
 import { dates } from '$lib/utils/dates';
 
 import type { Actions } from './$types';
@@ -18,7 +14,10 @@ export const actions = {
 	async default(e) {
 		const transactionId = parseInt(e.params.transactionId);
 
-		const dbTransaction = await getTransaction({ id: transactionId });
+		const transactionRepository = new TransactionRepository();
+		const transactionPaymentConfirmationRepository = new TransactionPaymentConfirmationRepository();
+
+		const dbTransaction = await transactionRepository.getOneTransaction({ id: transactionId });
 
 		if (!dbTransaction) {
 			error(404, { message: 'Transação não encontrada' });
@@ -44,10 +43,11 @@ export const actions = {
 			// transaction has no payment confirmation
 			if (!lastPaymentConfirmation) {
 				// so we set the payment confirmation as the first installment date
-				const paymentConfirmation = await createPaymentConfirmation({
-					transactionId,
-					paidAt: transaction.firstInstallmentAt
-				});
+				const paymentConfirmation =
+					await transactionPaymentConfirmationRepository.createPaymentConfirmation({
+						transactionId,
+						paidAt: transaction.firstInstallmentAt
+					});
 
 				return {
 					message: 'Pagamento confirmado com sucesso',
@@ -57,7 +57,9 @@ export const actions = {
 
 			// if the transaction has payment confirmations
 			// we remove every confirmation
-			await deleteAllPaymentConfirmations({ transactionId });
+			await transactionPaymentConfirmationRepository.deleteAllPaymentConfirmations({
+				transactionId
+			});
 
 			return {
 				message: 'Pagamento removido com sucesso',
@@ -75,10 +77,11 @@ export const actions = {
 					});
 				}
 
-				const paymentConfirmation = await createPaymentConfirmation({
-					transactionId,
-					paidAt: transaction.firstInstallmentAt
-				});
+				const paymentConfirmation =
+					await transactionPaymentConfirmationRepository.createPaymentConfirmation({
+						transactionId,
+						paidAt: transaction.firstInstallmentAt
+					});
 
 				return {
 					message: 'Pagamento confirmado com sucesso',
@@ -90,7 +93,7 @@ export const actions = {
 
 			// can only remove the last payment confirmation
 			if (lastPaymentConfirmationAt.isSame(paymentDate)) {
-				await deletePaymentConfirmation({
+				await transactionPaymentConfirmationRepository.deletePaymentConfirmation({
 					transactionId,
 					paidAt: paymentDate.toDate()
 				});
@@ -111,10 +114,11 @@ export const actions = {
 
 			// can only confirm payments that are subsequent to the last payment confirmation
 			if (paymentDate.isSame(lastPaymentConfirmationAt.add(1, 'month'))) {
-				const paymentConfirmation = await createPaymentConfirmation({
-					transactionId,
-					paidAt: paymentDate.toDate()
-				});
+				const paymentConfirmation =
+					await transactionPaymentConfirmationRepository.createPaymentConfirmation({
+						transactionId,
+						paidAt: paymentDate.toDate()
+					});
 
 				return {
 					message: 'Pagamento confirmado com sucesso',
@@ -151,10 +155,11 @@ export const actions = {
 					});
 				}
 
-				const paymentConfirmation = await createPaymentConfirmation({
-					transactionId,
-					paidAt: transaction.firstInstallmentAt
-				});
+				const paymentConfirmation =
+					await transactionPaymentConfirmationRepository.createPaymentConfirmation({
+						transactionId,
+						paidAt: transaction.firstInstallmentAt
+					});
 
 				return {
 					message: 'Pagamento confirmado com sucesso',
@@ -166,7 +171,7 @@ export const actions = {
 
 			// can only remove the last payment confirmation
 			if (lastPaymentConfirmationAt.isSame(paymentDate)) {
-				await deletePaymentConfirmation({
+				await transactionPaymentConfirmationRepository.deletePaymentConfirmation({
 					transactionId,
 					paidAt: paymentDate.toDate()
 				});
@@ -196,10 +201,11 @@ export const actions = {
 				// at 11/2024
 				!nextAvailableConfirmation.isAfter(lastInstallmentAt)
 			) {
-				const paymentConfirmation = await createPaymentConfirmation({
-					transactionId,
-					paidAt: paymentDate.toDate()
-				});
+				const paymentConfirmation =
+					await transactionPaymentConfirmationRepository.createPaymentConfirmation({
+						transactionId,
+						paidAt: paymentDate.toDate()
+					});
 
 				return {
 					message: 'Pagamento confirmado com sucesso',

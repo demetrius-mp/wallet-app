@@ -3,7 +3,7 @@ import { fail, setError, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
 import { SignInSchema } from '$lib/schemas';
-import { getUserByEmail } from '$lib/server/db/queries/user';
+import { UserRepository } from '$lib/server/db/repositories/user.repository';
 import { verifyPasswordHash } from '$lib/server/password';
 import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/session';
 import { setFlashMessage } from '$lib/utils/flash-message';
@@ -34,7 +34,11 @@ export const actions = {
 
 		const { data } = form;
 
-		const user = await getUserByEmail(data.email);
+		const repository = new UserRepository();
+
+		const user = await repository.getUserByEmail({
+			email: data.email
+		});
 
 		if (!user) {
 			return setError(form, 'Email ou senha incorretos');

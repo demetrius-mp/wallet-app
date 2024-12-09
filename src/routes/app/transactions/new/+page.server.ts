@@ -6,7 +6,7 @@ import {
 	RecurrentTransactionSchema,
 	SinglePaymentTransactionSchema
 } from '$lib/schemas';
-import { createTransaction } from '$lib/server/db/queries/transaction';
+import { TransactionRepository } from '$lib/server/db/repositories/transaction.repository';
 import { ensureAuth } from '$lib/server/ensure-auth';
 import { transformDayMonthYearDate, transformMonthYearDate } from '$lib/utils/dates';
 
@@ -23,7 +23,9 @@ export const actions = {
 
 		const { data } = form;
 
-		const transaction = await createTransaction({
+		const repository = new TransactionRepository();
+
+		const transaction = await repository.createTransaction({
 			...data,
 			userId: session.userId,
 			purchasedAt: transformDayMonthYearDate(data.purchasedAt),
@@ -46,7 +48,9 @@ export const actions = {
 
 		const { data } = form;
 
-		const transaction = await createTransaction({
+		const repository = new TransactionRepository();
+
+		const transaction = await repository.createTransaction({
 			...data,
 			userId: session.userId,
 			purchasedAt: transformDayMonthYearDate(data.purchasedAt),
@@ -70,7 +74,9 @@ export const actions = {
 
 		const { data } = form;
 
-		const transaction = await createTransaction({
+		const repository = new TransactionRepository();
+
+		const transaction = await repository.createTransaction({
 			...data,
 			userId: session.userId,
 			purchasedAt: transformDayMonthYearDate(data.purchasedAt),

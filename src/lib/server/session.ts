@@ -1,10 +1,8 @@
 import { sha256 } from '@oslojs/crypto/sha2';
 import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from '@oslojs/encoding';
 import type { RequestEvent } from '@sveltejs/kit';
-import { eq } from 'drizzle-orm';
 
-import { db } from '$lib/server/db';
-import { sessionsTable, usersTable } from '$lib/server/db/schema';
+import { SessionRepository } from '$lib/server/db/repositories/session.repository';
 import type { Entities } from '$lib/types';
 
 export function generateSessionToken(): string {
@@ -17,13 +15,16 @@ export function generateSessionToken(): string {
 
 export async function createSession(token: string, userId: number): Promise<Entities.Session> {
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
+
 	const session: Entities.Session = {
 		id: sessionId,
 		userId,
 		expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30)
 	};
 
-	await db.insert(sessionsTable).values(session);
+	const repository = new SessionRepository();
+
+	await repository.createSession(session);
 
 	return session;
 }
@@ -31,22 +32,15 @@ export async function createSession(token: string, userId: number): Promise<Enti
 export async function validateSessionToken(token: string): Promise<Entities.AuthSession | null> {
 	const sessionId = encodeHexLowerCase(sha256(new TextEncoder().encode(token)));
 
-	const result = await db
-		.select({ user: usersTable, session: sessionsTable })
-		.from(sessionsTable)
-		.innerJoin(usersTable, eq(sessionsTable.userId, usersTable.id))
-		.where(eq(sessionsTable.id, sessionId));
+	const repository = new SessionRepository();
+	const data = await repository.getSessionAndUser({ sessionId });
 
-	const data = result.at(0);
-
-	if (data === undefined) {
-		return null;
-	}
+	if (data === null) return null;
 
 	const { user, session } = data;
 
 	if (Date.now() >= session.expiresAt.getTime()) {
-		await db.delete(sessionsTable).where(eq(sessionsTable.id, session.id));
+		await repository.deleteSession({ sessionId });
 
 		return null;
 	}
@@ -54,12 +48,10 @@ export async function validateSessionToken(token: string): Promise<Entities.Auth
 	if (Date.now() >= session.expiresAt.getTime() - 1000 * 60 * 60 * 24 * 15) {
 		session.expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
 
-		await db
-			.update(sessionsTable)
-			.set({
-				expiresAt: session.expiresAt
-			})
-			.where(eq(sessionsTable.id, session.id));
+		await repository.updateSessionExpiration({
+			sessionId: session.id,
+			expiresAt: session.expiresAt
+		});
 	}
 
 	return {
@@ -69,7 +61,9 @@ export async function validateSessionToken(token: string): Promise<Entities.Auth
 }
 
 export async function invalidateSession(sessionId: string): Promise<void> {
-	await db.delete(sessionsTable).where(eq(sessionsTable.id, sessionId));
+	const repository = new SessionRepository();
+
+	await repository.deleteSession({ sessionId });
 }
 
 const SESSION_COOKIE_OPTIONS = {

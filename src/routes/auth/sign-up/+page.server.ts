@@ -3,7 +3,7 @@ import { fail, setError, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
 import { SignUpSchema } from '$lib/schemas';
-import { createUser, getUserByEmail } from '$lib/server/db/queries/user';
+import { UserRepository } from '$lib/server/db/repositories/user.repository';
 import { generatePasswordHash } from '$lib/server/password';
 import { setFlashMessage } from '$lib/utils/flash-message';
 
@@ -33,13 +33,17 @@ export const actions = {
 
 		const { data } = form;
 
-		const existingUser = await getUserByEmail(data.email);
+		const repository = new UserRepository();
+
+		const existingUser = await repository.getUserByEmail({
+			email: data.email
+		});
 
 		if (existingUser) {
 			return setError(form, 'email', 'Email já cadastrado');
 		}
 
-		await createUser({
+		await repository.createUser({
 			email: data.email,
 			name: data.name,
 			password: await generatePasswordHash(data.password)

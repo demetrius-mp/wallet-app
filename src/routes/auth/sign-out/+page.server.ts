@@ -1,4 +1,4 @@
-import { deleteSessionTokenCookie, invalidateSession } from '$lib/server/session';
+import { deleteSessionTokenCookie, invalidateSession } from '$lib/server/auth/session.auth';
 
 import type { Actions } from './$types';
 

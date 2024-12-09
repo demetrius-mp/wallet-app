@@ -4,8 +4,12 @@ import { zod } from 'sveltekit-superforms/adapters';
 
 import { SignInSchema } from '$lib/schemas';
 import { UserRepository } from '$lib/server/db/repositories/user.repository';
-import { verifyPasswordHash } from '$lib/server/password';
-import { createSession, generateSessionToken, setSessionTokenCookie } from '$lib/server/session';
+import { verifyPasswordHash } from '$lib/server/auth/password.auth';
+import {
+	createSession,
+	generateSessionToken,
+	setSessionTokenCookie
+} from '$lib/server/auth/session.auth';
 import { setFlashMessage } from '$lib/utils/flash-message';
 
 import type { Actions, PageServerLoad } from './$types';

@@ -4,7 +4,7 @@ import {
 	deleteSessionTokenCookie,
 	setSessionTokenCookie,
 	validateSessionToken
-} from '$lib/server/session';
+} from '$lib/server/auth/session.auth';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const token = event.cookies.get('session') ?? null;

@@ -6,8 +6,8 @@ import {
 	RecurrentTransactionSchema,
 	SinglePaymentTransactionSchema
 } from '$lib/schemas';
+import { ensureAuth } from '$lib/server/auth/ensure-auth.auth';
 import { TransactionRepository } from '$lib/server/db/repositories/transaction.repository';
-import { ensureAuth } from '$lib/server/ensure-auth';
 import { transformDayMonthYearDate, transformMonthYearDate } from '$lib/utils/dates';
 
 import type { Actions } from './$types';

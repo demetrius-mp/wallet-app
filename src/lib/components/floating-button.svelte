@@ -3,13 +3,12 @@
 
 	type Props = {
 		children: Snippet;
-		spacerClass?: string;
 	};
 
-	let { children, spacerClass = 'mt-12' }: Props = $props();
+	let { children }: Props = $props();
 </script>
 
-<div class={spacerClass}></div>
+<div class="mt-20"></div>
 
 <div class="floating-button-container">
 	{@render children()}

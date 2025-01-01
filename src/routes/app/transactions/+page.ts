@@ -1,6 +1,7 @@
 import {
 	checkTransactionCategoryIsValid,
-	checkTransactionModeIsValid
+	checkTransactionModeIsValid,
+	checkTransactionStatusIsValid
 	// convertTransaction
 } from '$lib/models/transaction';
 import type { Entities } from '$lib/types';
@@ -31,6 +32,18 @@ function checkTransactionCategoryTagsParamIsValid(
 	return tags;
 }
 
+function checkTransactionStatusTagsParamIsValid(
+	param: string | null
+): Entities.TransactionStatus[] {
+	if (!param) return [];
+
+	const tags = param.split(',');
+
+	if (!tags.every(checkTransactionStatusIsValid)) return [];
+
+	return tags;
+}
+
 export const load = (async (e) => {
 	// let availableTags = new Set<string>();
 
@@ -57,6 +70,9 @@ export const load = (async (e) => {
 	const transactionModeTagsParam = e.url.searchParams.get('transactionModeTags');
 	const transactionModeTags = checkTransactionModeTagsParamIsValid(transactionModeTagsParam);
 
+	const transactionStatusTagsParam = e.url.searchParams.get('transactionStatusTags');
+	const transactionStatusTags = checkTransactionStatusTagsParamIsValid(transactionStatusTagsParam);
+
 	const currentMonth = dates
 		.tz(new Date(), 'America/Campo_Grande')
 		.utc(true)
@@ -71,6 +87,7 @@ export const load = (async (e) => {
 		tags,
 		transactionModeTags,
 		transactionCategoryTags,
+		transactionStatusTags,
 		date,
 		currentMonth
 	};

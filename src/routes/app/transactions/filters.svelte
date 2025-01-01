@@ -6,8 +6,10 @@
 	import {
 		getTransactionCategoryLabel,
 		getTransactionModeLabel,
+		getTransactionStatusLabel,
 		TRANSACTION_CATEGORIES,
-		TRANSACTION_MODES
+		TRANSACTION_MODES,
+		TRANSACTION_STATUSES
 	} from '$lib/models/transaction';
 	import { chipVariants } from '$lib/shadcn/custom/chip.svelte';
 	import { badgeVariants } from '$lib/shadcn/ui/badge';
@@ -21,9 +23,11 @@
 		availableTags: Set<string>;
 		transactionModeTags: Set<string>;
 		transactionCategoryTags: Set<string>;
+		transactionStatusTags: Set<Entities.TransactionStatus>;
 		onToggleTag: (tag: string) => void;
 		onToggleTransactionModeTag: (transactionMode: Entities.TransactionMode) => void;
 		onToggleTransactionCategoryTag: (transactionCategory: Entities.TransactionCategory) => void;
+		onToggleTransactionStatusTag: (tag: Entities.TransactionStatus) => void;
 	};
 
 	let {
@@ -31,9 +35,11 @@
 		availableTags,
 		transactionCategoryTags,
 		transactionModeTags,
+		transactionStatusTags,
 		onToggleTag,
 		onToggleTransactionCategoryTag,
-		onToggleTransactionModeTag
+		onToggleTransactionModeTag,
+		onToggleTransactionStatusTag
 	}: Props = $props();
 </script>
 
@@ -56,7 +62,7 @@
 						encontrado.
 					</Command.Empty>
 
-					<Command.Group heading="Tipos de transação">
+					<Command.Group heading="Forma de pagamento">
 						{#each TRANSACTION_MODES as transactionMode}
 							<Command.Item
 								value={transactionMode}
@@ -70,7 +76,11 @@
 								{/if}
 							</Command.Item>
 						{/each}
+					</Command.Group>
 
+					<Command.Separator />
+
+					<Command.Group heading="Tipo">
 						{#each TRANSACTION_CATEGORIES as transactionCategory}
 							<Command.Item
 								value={transactionCategory}
@@ -80,6 +90,24 @@
 								{getTransactionCategoryLabel(transactionCategory)}
 
 								{#if transactionCategoryTags.has(transactionCategory)}
+									<CheckIcon />
+								{/if}
+							</Command.Item>
+						{/each}
+					</Command.Group>
+
+					<Command.Separator />
+
+					<Command.Group heading="Status">
+						{#each TRANSACTION_STATUSES as transactionStatus}
+							<Command.Item
+								value={transactionStatus}
+								onSelect={() => onToggleTransactionStatusTag(transactionStatus)}
+								class="flex items-center justify-between break-all"
+							>
+								{getTransactionStatusLabel(transactionStatus)}
+
+								{#if transactionStatusTags.has(transactionStatus)}
 									<CheckIcon />
 								{/if}
 							</Command.Item>
@@ -122,6 +150,21 @@
 			onclick={() => onToggleTag(tag)}
 		>
 			{tag}
+		</button>
+	{/each}
+
+	{#each transactionStatusTags as tag (tag)}
+		<button
+			animate:flip={{
+				duration: 150
+			}}
+			transition:scale={{
+				duration: 150
+			}}
+			class={cn(badgeVariants())}
+			onclick={() => onToggleTransactionStatusTag(tag)}
+		>
+			{getTransactionStatusLabel(tag)}
 		</button>
 	{/each}
 </div>

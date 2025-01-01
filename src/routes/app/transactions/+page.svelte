@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { shortcut } from '@svelte-put/shortcut';
-	import type { Dayjs } from 'dayjs';
 	import PlusIcon from 'lucide-svelte/icons/plus';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { toast } from 'svelte-sonner';
@@ -23,25 +22,18 @@
 
 	let { data } = $props();
 
-	type SearchParams = {
-		term: string;
-		tags: Set<string>;
-		date: Dayjs;
-		transactionModeTags: Set<Entities.TransactionMode>;
-		transactionCategoryTags: Set<Entities.TransactionCategory>;
-	};
-
 	const currentMonth = dates(data.searchParams.currentMonth, 'YYYY-MM-DD').utc(true);
 	const minDate = dates(data.searchParams.currentMonth, 'YYYY-MM-DD')
 		.utc(true)
 		.subtract(1, 'month');
 
-	let searchParams = $state<SearchParams>({
+	let searchParams = $state<Entities.TransactionFilters>({
 		term: data.searchParams.term,
 		tags: new SvelteSet(data.searchParams.tags),
 		date: dates(data.searchParams.date, 'YYYY-MM-DD').utc(true),
 		transactionModeTags: new SvelteSet(data.searchParams.transactionModeTags),
-		transactionCategoryTags: new SvelteSet(data.searchParams.transactionCategoryTags)
+		transactionCategoryTags: new SvelteSet(data.searchParams.transactionCategoryTags),
+		transactionStatusTags: new SvelteSet(data.searchParams.transactionStatusTags)
 	});
 
 	const { transactions, availableTags } = useTransactionsContext();
@@ -73,6 +65,14 @@
 		}
 	}
 
+	function toggleTransactionStatusTag(tag: Entities.TransactionStatus) {
+		if (searchParams.transactionStatusTags.has(tag)) {
+			searchParams.transactionStatusTags.delete(tag);
+		} else {
+			searchParams.transactionStatusTags.add(tag);
+		}
+	}
+
 	$effect(() => {
 		const params = new URLSearchParams();
 
@@ -97,6 +97,10 @@
 				'transactionCategoryTags',
 				Array.from(searchParams.transactionCategoryTags).join(',')
 			);
+		}
+
+		if (searchParams.transactionStatusTags.size > 0) {
+			params.set('transactionStatusTags', Array.from(searchParams.transactionStatusTags).join(','));
 		}
 
 		goto(`?${params.toString()}`, {
@@ -191,9 +195,11 @@
 		selectedTags={searchParams.tags}
 		transactionCategoryTags={searchParams.transactionCategoryTags}
 		transactionModeTags={searchParams.transactionModeTags}
+		transactionStatusTags={searchParams.transactionStatusTags}
 		onToggleTag={toggleTag}
 		onToggleTransactionCategoryTag={toggleTransactionCategoryTag}
 		onToggleTransactionModeTag={toggleTransactionModeTag}
+		onToggleTransactionStatusTag={toggleTransactionStatusTag}
 	/>
 </div>
 

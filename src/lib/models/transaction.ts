@@ -6,6 +6,7 @@ import { isSubsetOf } from '$lib/utils/set';
 
 export const TRANSACTION_MODES = ['RECURRENT', 'SINGLE_PAYMENT', 'IN_INSTALLMENTS'] as const;
 export const TRANSACTION_CATEGORIES = ['INCOME', 'EXPENSE'] as const;
+export const TRANSACTION_STATUSES = ['CONFIRMED', 'NOT_CONFIRMED'] as const;
 
 type DbTransaction = {
 	id: number;
@@ -135,8 +136,23 @@ export function getTransactionCategoryLabel(category: Entities.TransactionCatego
 	return transactionCategoryLabel[category];
 }
 
+export const transactionStatusLabel: Record<NonNullable<Entities.TransactionStatus>, string> = {
+	CONFIRMED: 'Confirmadas',
+	NOT_CONFIRMED: 'Não confirmadas'
+};
+
+export function getTransactionStatusLabel(tag: NonNullable<Entities.TransactionStatus>): string {
+	return transactionStatusLabel[tag];
+}
+
 export function checkTransactionModeIsValid(mode: string): mode is Entities.TransactionMode {
 	return TRANSACTION_MODES.includes(mode as Entities.TransactionMode);
+}
+
+export function checkTransactionStatusIsValid(
+	status: string
+): status is Entities.TransactionStatus {
+	return TRANSACTION_STATUSES.includes(status as Entities.TransactionStatus);
 }
 
 export function checkTransactionCategoryIsValid(
@@ -165,6 +181,25 @@ export const transactionFilters = {
 		}
 
 		return tags.has(transaction.category);
+	},
+	matchesTransactionConfirmationTag(
+		transaction: { lastPaymentConfirmationAt: Date | null },
+		date: Dayjs,
+		tags: Entities.TransactionFilters['transactionStatusTags']
+	) {
+		if (tags.size === 0) {
+			return true;
+		}
+
+		const paymentIsConfirmed = checkPaymentIsConfirmed(transaction, date);
+
+		if (tags.has('CONFIRMED')) {
+			return paymentIsConfirmed;
+		}
+
+		if (tags.has('NOT_CONFIRMED')) {
+			return !paymentIsConfirmed;
+		}
 	},
 	matchesTags(transaction: { tags: Set<string> }, tags: Set<string>) {
 		if (tags.size === 0) {
@@ -205,7 +240,10 @@ export const transactionFilters = {
 	}
 };
 
-export function checkPaymentIsConfirmed(transaction: Entities.Transaction, date: Dayjs) {
+export function checkPaymentIsConfirmed(
+	transaction: { lastPaymentConfirmationAt: Date | null },
+	date: Dayjs
+) {
 	const lastPaymentConfirmationAt = transaction.lastPaymentConfirmationAt;
 
 	if (!lastPaymentConfirmationAt) {
@@ -239,6 +277,12 @@ export function filterTransactions(
 			transactionFilters.matchesModeTags(item, filters.transactionModeTags);
 		const matchesTransactionCategory = () =>
 			transactionFilters.matchesCategoryTags(item, filters.transactionCategoryTags);
+		const matchesTransactionConfirmationTag = () =>
+			transactionFilters.matchesTransactionConfirmationTag(
+				item,
+				filters.date,
+				filters.transactionStatusTags
+			);
 		const matchesDate = () => transactionFilters.matchesDate(item, date);
 
 		return (
@@ -246,6 +290,7 @@ export function filterTransactions(
 			matchesDate() &&
 			matchesTransactionMode() &&
 			matchesTransactionCategory() &&
+			matchesTransactionConfirmationTag() &&
 			matchesTags()
 		);
 	});

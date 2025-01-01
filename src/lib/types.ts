@@ -2,12 +2,17 @@
 import type { ActionFailure, ActionResult } from '@sveltejs/kit';
 import type { Dayjs } from 'dayjs';
 
-import type { TRANSACTION_CATEGORIES, TRANSACTION_MODES } from '$lib/models/transaction';
+import type {
+	TRANSACTION_CATEGORIES,
+	TRANSACTION_MODES,
+	TRANSACTION_STATUSES
+} from '$lib/models/transaction';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Entities {
 	export type TransactionMode = (typeof TRANSACTION_MODES)[number];
 	export type TransactionCategory = (typeof TRANSACTION_CATEGORIES)[number];
+	export type TransactionStatus = (typeof TRANSACTION_STATUSES)[number];
 
 	export type User = {
 		id: number;
@@ -71,6 +76,7 @@ export namespace Entities {
 		date: Dayjs;
 		transactionModeTags: Set<Entities.TransactionMode>;
 		transactionCategoryTags: Set<Entities.TransactionCategory>;
+		transactionStatusTags: Set<Entities.TransactionStatus>;
 	};
 }
 

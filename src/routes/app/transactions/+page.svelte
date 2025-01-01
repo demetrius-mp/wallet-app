@@ -214,7 +214,7 @@
 	{/each}
 </ul>
 
-<FloatingButton spacerClass="mt-16">
+<FloatingButton>
 	<Button href="/app/transactions/new" class="size-12 rounded-full">
 		<PlusIcon class="!size-6" />
 	</Button>

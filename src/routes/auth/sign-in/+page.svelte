@@ -3,6 +3,7 @@
 
 	import MetaTags from '$lib/components/meta-tags.svelte';
 	import * as PageHeading from '$lib/components/page-heading';
+	import FormError from '$lib/shadcn/custom/form-error.svelte';
 	import Button from '$lib/shadcn/ui/button/button.svelte';
 	import * as Form from '$lib/shadcn/ui/form';
 	import Input from '$lib/shadcn/ui/input/input.svelte';
@@ -23,6 +24,8 @@
 		Quer criar uma conta? <a href="/auth/sign-up" class="underline">Clique aqui</a>.
 	</PageHeading.Description>
 </PageHeading.Root>
+
+<FormError {form} />
 
 <form method="POST" use:enhance class="mt-4 flex flex-col gap-2">
 	<Form.Field {form} name="email">

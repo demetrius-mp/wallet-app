@@ -3,8 +3,8 @@ import { fail, setError, superValidate } from 'sveltekit-superforms';
 import { zod } from 'sveltekit-superforms/adapters';
 
 import { SignUpSchema } from '$lib/schemas';
-import { UserRepository } from '$lib/server/db/repositories/user.repository';
 import { generatePasswordHash } from '$lib/server/auth/password.auth';
+import { UserRepository } from '$lib/server/db/repositories/user.repository';
 import { setFlashMessage } from '$lib/utils/flash-message';
 
 import type { Actions, PageServerLoad } from './$types';

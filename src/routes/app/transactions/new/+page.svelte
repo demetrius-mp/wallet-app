@@ -28,7 +28,6 @@
 		const transaction = getTransactionById(data.copyFrom);
 
 		if (transaction) {
-			console.log(transaction.tags);
 			baseFormData = {
 				name: transaction.name,
 				category: transaction.category,

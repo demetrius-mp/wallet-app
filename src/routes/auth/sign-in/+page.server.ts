@@ -49,7 +49,6 @@ export const actions = {
 		}
 
 		const passwordMatches = await verifyPasswordHash(data.password, user.password);
-		console.log(passwordMatches);
 
 		if (!passwordMatches) {
 			return setError(form, 'Email ou senha incorretos');

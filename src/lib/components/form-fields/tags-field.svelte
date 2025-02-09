@@ -76,7 +76,7 @@
 	use:melt={$root}
 	{...restProps}
 	class={cn(
-		'flex flex-wrap items-center rounded-md border focus-within:ring-1 focus-within:ring-ring focus-within:ring-offset-1',
+		'flex flex-wrap items-center rounded-md border focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1',
 		className
 	)}
 >

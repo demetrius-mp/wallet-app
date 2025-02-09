@@ -10,7 +10,10 @@
 	let { children, href }: Props = $props();
 </script>
 
-<a {href} class="mb-2 flex cursor-pointer items-center text-muted-foreground hover:text-primary">
+<a
+	{href}
+	class="flex w-fit cursor-pointer items-center p-2 pl-0 text-muted-foreground hover:text-primary"
+>
 	<ChevronLeftIcon class="mr-1.5 h-4 w-4 " />
 
 	<span class="text-sm">

@@ -12,7 +12,7 @@
 	import { flip } from 'svelte/animate';
 	import type { HTMLAttributes } from 'svelte/elements';
 	import { writable } from 'svelte/store';
-	import { scale } from 'svelte/transition';
+	import { scale, slide } from 'svelte/transition';
 
 	import { chipVariants } from '$lib/shadcn/custom/chip.svelte';
 	import Separator from '$lib/shadcn/ui/separator/separator.svelte';
@@ -82,7 +82,7 @@
 >
 	{#if $tags.length > 0}
 		<div
-			transition:scale={{
+			transition:slide={{
 				duration: 250
 			}}
 			class="flex flex-wrap items-center gap-2 p-2"

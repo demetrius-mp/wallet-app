@@ -47,7 +47,7 @@
 	};
 </script>
 
-<MetaTags title="Editar transação" />
+<MetaTags title="Transações - Editar transação" />
 
 {#if data.transaction.lastPaymentConfirmationAt !== null}
 	<PageHeading.Root>

@@ -59,7 +59,7 @@
 	};
 </script>
 
-<MetaTags title="Nova transação" />
+<MetaTags title="Transações - Nova transação" />
 
 <PageHeading.Root>
 	<PageHeading.Return href="/app/transactions">Transações</PageHeading.Return>

@@ -13,8 +13,8 @@
 </PageHeading.Root>
 
 <div class="space-y-4">
-	<Card.Root class="p-6">
-		<a href="/app/transactions">
+	<a href="/app/transactions">
+		<Card.Root class="p-6">
 			<Card.Header class="p-0">
 				<Card.Title>Ver transações</Card.Title>
 
@@ -22,16 +22,16 @@
 					Veja as suas transações mais recentes, filtre por data, categoria e modo de pagamento.
 				</Card.Description>
 			</Card.Header>
-		</a>
-	</Card.Root>
+		</Card.Root>
+	</a>
 
-	<Card.Root class="p-6">
-		<a href="/app/reminders">
+	<a href="/app/reminders">
+		<Card.Root class="p-6">
 			<Card.Header class="p-0">
 				<Card.Title>Ver lembretes</Card.Title>
 
 				<Card.Description>Veja os lembretes de pagamento que você cadastrou.</Card.Description>
 			</Card.Header>
-		</a>
-	</Card.Root>
+		</Card.Root>
+	</a>
 </div>

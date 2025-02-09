@@ -49,31 +49,31 @@
 	});
 </script>
 
-<div class={cn('relative flex min-h-11 flex-wrap items-center rounded-md border transition-all')}>
-	{#if $tags.length === 0}
-		<span class="pl-3 text-muted-foreground"> Nenhuma tag </span>
-	{/if}
-	<div class="flex flex-wrap items-center gap-2 p-2 pr-10">
-		{#if $tags.length > 0}
-			{#each $tags as t (t.id)}
-				<div
-					animate:flip={{
-						duration: 150
-					}}
-					transition:scale={{
-						duration: 250
-					}}
-				>
-					<div class={cn(chipVariants())}>
-						{t.value}
-					</div>
-				</div>
-			{/each}
+<Dialog.Root>
+	<div class={cn('relative flex min-h-11 flex-wrap items-center rounded-md border transition-all')}>
+		{#if $tags.length === 0}
+			<span class="pl-3 text-muted-foreground"> Nenhuma tag </span>
 		{/if}
-	</div>
+		<div class="flex flex-wrap items-center gap-2 p-2 pr-10">
+			{#if $tags.length > 0}
+				{#each $tags as t (t.id)}
+					<div
+						animate:flip={{
+							duration: 150
+						}}
+						transition:scale={{
+							duration: 250
+						}}
+					>
+						<div class={cn(chipVariants())}>
+							{t.value}
+						</div>
+					</div>
+				{/each}
+			{/if}
+		</div>
 
-	<div class="absolute right-[5px] top-[5px]">
-		<Dialog.Root>
+		<div class="absolute right-[5px] top-[5px]">
 			<Dialog.Trigger
 				type="button"
 				class={cn(buttonVariants({ variant: 'ghost', size: 'icon', className: 'size-8' }))}
@@ -81,94 +81,95 @@
 			>
 				<SquarePen />
 			</Dialog.Trigger>
-			<Dialog.Content class="p-4">
-				<Dialog.Header>
-					<Dialog.Title>Alterar tags</Dialog.Title>
-					<Dialog.Description>Adicione e remova tags desta transação</Dialog.Description>
-				</Dialog.Header>
+		</div>
+	</div>
 
-				<div>
+	<Dialog.Content class="p-4">
+		<Dialog.Header>
+			<Dialog.Title>Alterar tags</Dialog.Title>
+			<Dialog.Description>Adicione e remova tags desta transação</Dialog.Description>
+		</Dialog.Header>
+
+		<div>
+			<div
+				use:melt={$root}
+				class={cn(
+					'flex flex-wrap items-center rounded-md border focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1'
+				)}
+			>
+				{#if $tags.length > 0}
 					<div
-						use:melt={$root}
-						class={cn(
-							'flex flex-wrap items-center rounded-md border focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1'
-						)}
+						transition:slide={{
+							duration: 250
+						}}
+						class="flex flex-wrap items-center gap-2 p-2"
 					>
-						{#if $tags.length > 0}
+						{#each $tags as t (t.id)}
 							<div
-								transition:slide={{
+								animate:flip={{
+									duration: 150
+								}}
+								transition:scale={{
 									duration: 250
 								}}
-								class="flex flex-wrap items-center gap-2 p-2"
 							>
-								{#each $tags as t (t.id)}
-									<div
-										animate:flip={{
-											duration: 150
-										}}
-										transition:scale={{
-											duration: 250
-										}}
+								<div
+									class={cn(chipVariants(), 'data-[selected]:bg-primary/75', 'py-1')}
+									use:melt={$tag(t)}
+								>
+									{t.value}
+
+									<button
+										type="button"
+										use:melt={$deleteTrigger(t)}
+										class="ml-1 rounded-full p-0.5 hover:bg-primary-foreground/20 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
 									>
-										<div
-											class={cn(chipVariants(), 'data-[selected]:bg-primary/75', 'py-1')}
-											use:melt={$tag(t)}
-										>
-											{t.value}
+										<XIcon class="h-3 w-3" />
+										<span class="sr-only">Remover</span>
+									</button>
+								</div>
 
-											<button
-												type="button"
-												use:melt={$deleteTrigger(t)}
-												class="ml-1 rounded-full p-0.5 hover:bg-primary-foreground/20 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-											>
-												<XIcon class="h-3 w-3" />
-												<span class="sr-only">Remover</span>
-											</button>
-										</div>
-
-										<div
-											use:melt={$edit(t)}
-											class="flex items-center overflow-hidden rounded-md px-2 py-[0.09rem] [word-break:break-word] data-[invalid-edit]:outline-destructive"
-										></div>
-									</div>
-								{/each}
+								<div
+									use:melt={$edit(t)}
+									class="flex items-center overflow-hidden rounded-md px-2 py-[0.09rem] [word-break:break-word] data-[invalid-edit]:outline-destructive"
+								></div>
 							</div>
-
-							<Separator />
-						{/if}
-
-						<input
-							use:melt={$input}
-							name="tags-input--{props.id}"
-							bind:this={inputRef}
-							enterkeyhint="enter"
-							onkeypress={(e) => {
-								if (e.key === ',') {
-									e.preventDefault();
-									if (!inputRef) return;
-
-									const event = new KeyboardEvent('keydown', {
-										key: 'Enter',
-										code: 'Enter'
-									});
-
-									inputRef.dispatchEvent(event);
-								}
-							}}
-							type="text"
-							class={cn(
-								// shadcn input styles
-								'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-								// custom styles
-								'flex-grow border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0',
-								'data-[invalid]:text-destructive'
-							)}
-						/>
+						{/each}
 					</div>
-				</div>
-			</Dialog.Content>
-		</Dialog.Root>
-	</div>
-</div>
+
+					<Separator />
+				{/if}
+
+				<input
+					use:melt={$input}
+					name="tags-input--{props.id}"
+					bind:this={inputRef}
+					enterkeyhint="enter"
+					onkeypress={(e) => {
+						if (e.key === ',') {
+							e.preventDefault();
+							if (!inputRef) return;
+
+							const event = new KeyboardEvent('keydown', {
+								key: 'Enter',
+								code: 'Enter'
+							});
+
+							inputRef.dispatchEvent(event);
+						}
+					}}
+					type="text"
+					class={cn(
+						// shadcn input styles
+						'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+						// custom styles
+						'flex-grow border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0',
+						'data-[invalid]:text-destructive'
+					)}
+				/>
+			</div>
+		</div>
+	</Dialog.Content>
+</Dialog.Root>
 
 <input type="hidden" name={props.name} value={$tags.map((t) => t.value).join(',')} />

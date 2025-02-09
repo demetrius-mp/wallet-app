@@ -123,6 +123,11 @@
 	}
 
 	async function handleCopyTransactionsToClipboard() {
+		if (filteredTransactions.length === 0) {
+			toast.error('Não há transações para copiar');
+			return;
+		}
+
 		const initial = `Transações em ${searchParams.date.format('MM/YYYY')}\nValor total: ${formatCurrency(bill)}\n\n`;
 
 		const report = filteredTransactions

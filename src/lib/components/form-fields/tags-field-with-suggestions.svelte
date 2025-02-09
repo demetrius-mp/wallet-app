@@ -17,13 +17,7 @@
 		suggestions?: string[];
 	};
 
-	let {
-		value = $bindable(new Set()),
-		id,
-		name,
-		suggestions: _suggestions = [],
-		...restProps
-	}: Props = $props();
+	let { value = $bindable(new Set()), suggestions: _suggestions = [], ...props }: Props = $props();
 
 	let inputRef: HTMLInputElement | null = $state(null);
 
@@ -83,9 +77,7 @@
 			<Dialog.Trigger
 				type="button"
 				class={cn(buttonVariants({ variant: 'ghost', size: 'icon', className: 'size-8' }))}
-				{...restProps}
-				{id}
-				{name}
+				{...props}
 			>
 				<SquarePen />
 			</Dialog.Trigger>
@@ -98,7 +90,6 @@
 				<div>
 					<div
 						use:melt={$root}
-						{...restProps}
 						class={cn(
 							'flex flex-wrap items-center rounded-md border focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1'
 						)}
@@ -148,8 +139,7 @@
 
 						<input
 							use:melt={$input}
-							{id}
-							name="tags-input--{id}"
+							name="tags-input--{props.id}"
 							bind:this={inputRef}
 							enterkeyhint="enter"
 							onkeypress={(e) => {
@@ -181,4 +171,4 @@
 	</div>
 </div>
 
-<input type="hidden" {name} value={$tags.map((t) => t.value).join(',')} />
+<input type="hidden" name={props.name} value={$tags.map((t) => t.value).join(',')} />

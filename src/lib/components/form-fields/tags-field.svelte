@@ -1,17 +1,9 @@
-<script lang="ts" module>
-	export function createSetTags() {
-		return (_tags: Set<string>) => {};
-	}
-</script>
-
 <script lang="ts">
-	import { type Tag } from '@melt-ui/svelte';
 	import { createTagsInput, melt } from '@melt-ui/svelte';
 	import type { ControlAttrs } from 'formsnap';
 	import XIcon from 'lucide-svelte/icons/x';
 	import { flip } from 'svelte/animate';
 	import type { HTMLAttributes } from 'svelte/elements';
-	import { writable } from 'svelte/store';
 	import { scale, slide } from 'svelte/transition';
 
 	import { chipVariants } from '$lib/shadcn/custom/chip.svelte';
@@ -21,25 +13,9 @@
 	type Props = ControlAttrs &
 		HTMLAttributes<HTMLDivElement> & {
 			value?: Set<string>;
-			setTags?: (tags: Set<string>) => void;
 		};
 
-	let {
-		value = $bindable(new Set()),
-		setTags = $bindable(),
-		id,
-		name,
-		class: className,
-		...restProps
-	}: Props = $props();
-
-	const customTagsStore = writable<Tag[]>([]);
-
-	setTags = (tags) => {
-		$customTagsStore = Array.from(tags).map((t) => ({ id: t, value: t }));
-	};
-
-	setTags(value);
+	let { value = $bindable(new Set()), id, name, class: className, ...restProps }: Props = $props();
 
 	let inputRef: HTMLInputElement | null = $state(null);
 
@@ -47,7 +23,7 @@
 		elements: { root, input, tag, deleteTrigger, edit },
 		states: { tags }
 	} = createTagsInput({
-		tags: customTagsStore,
+		defaultTags: Array.from(value),
 		unique: true,
 		add(tag) {
 			if (tag.includes(',')) {
@@ -67,8 +43,7 @@
 			value = new Set(next.map((t) => t.value));
 
 			return next;
-		},
-		addOnPaste: true
+		}
 	});
 </script>
 
@@ -108,7 +83,7 @@
 							class="ml-1 rounded-full p-0.5 hover:bg-primary-foreground/20 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
 						>
 							<XIcon class="h-3 w-3" />
-							<span class="sr-only">Remove</span>
+							<span class="sr-only">Remover</span>
 						</button>
 					</div>
 

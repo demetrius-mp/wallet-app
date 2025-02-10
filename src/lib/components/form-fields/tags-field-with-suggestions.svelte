@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { createTagsInput, melt } from '@melt-ui/svelte';
+	import { createCombobox, createTagsInput, melt } from '@melt-ui/svelte';
 	import type { ControlAttrs } from 'formsnap';
+	import CheckIcon from 'lucide-svelte/icons/check';
 	import SquarePen from 'lucide-svelte/icons/square-pen';
 	import XIcon from 'lucide-svelte/icons/x';
 	import { flip } from 'svelte/animate';
@@ -17,7 +18,7 @@
 		suggestions?: string[];
 	};
 
-	let { value = $bindable(new Set()), suggestions: _suggestions = [], ...props }: Props = $props();
+	let { value = $bindable(new Set()), suggestions = [], ...props }: Props = $props();
 
 	let inputRef: HTMLInputElement | null = $state(null);
 
@@ -46,6 +47,22 @@
 
 			return next;
 		}
+	});
+
+	const filteredSuggestions = $derived.by(() => {
+		const normalizedInputValue = $comboboxInputValue.toLowerCase();
+
+		return suggestions.filter((s) => s.toLowerCase().includes(normalizedInputValue));
+	});
+
+	const {
+		elements: { menu: comboboxMenu, input: comboboxInput, option: comboboxOption },
+		states: { open: comboboxOpen, inputValue: comboboxInputValue },
+		helpers: { isSelected: comboboxIsSelected }
+	} = createCombobox({
+		forceVisible: true,
+		multiple: true,
+		portal: null
 	});
 </script>
 
@@ -142,8 +159,10 @@
 
 				<input
 					use:melt={$input}
+					use:melt={$comboboxInput}
 					name="tags-input--{props.id}"
 					bind:this={inputRef}
+					aria-labelledby={props.id}
 					enterkeyhint="enter"
 					onkeypress={(e) => {
 						if (e.key === ',') {
@@ -167,6 +186,41 @@
 						'data-[invalid]:text-destructive'
 					)}
 				/>
+
+				{#if $comboboxOpen}
+					<ul
+						class="z-50 flex max-h-56 flex-col overflow-hidden rounded-md border"
+						use:melt={$comboboxMenu}
+						transition:slide={{ duration: 100 }}
+					>
+						<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+						<div
+							class="flex max-h-full flex-col overflow-y-auto bg-white p-1 text-black"
+							tabindex="0"
+						>
+							{#each filteredSuggestions as suggestion, index (index)}
+								<li
+									use:melt={$comboboxOption({
+										value: suggestion,
+										label: suggestion
+									})}
+									class="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none data-[disabled]:pointer-events-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[disabled]:opacity-50"
+								>
+									{#if $comboboxIsSelected(suggestion)}
+										<span
+											transition:scale={{ duration: 150 }}
+											class="absolute left-2 flex items-center justify-center"
+										>
+											<CheckIcon class="size-3.5" />
+										</span>
+									{/if}
+
+									{suggestion}
+								</li>
+							{/each}
+						</div>
+					</ul>
+				{/if}
 			</div>
 		</div>
 	</Dialog.Content>

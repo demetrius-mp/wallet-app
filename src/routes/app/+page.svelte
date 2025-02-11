@@ -12,7 +12,7 @@
 	<PageHeading.Description>Para onde você quer ir hoje?</PageHeading.Description>
 </PageHeading.Root>
 
-<div class="space-y-4">
+<div class="flex flex-col gap-4">
 	<a href="/app/transactions">
 		<Card.Root class="p-6">
 			<Card.Header class="p-0">

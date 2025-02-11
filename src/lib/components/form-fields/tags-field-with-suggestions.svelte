@@ -5,6 +5,7 @@
 	import SquarePen from 'lucide-svelte/icons/square-pen';
 	import XIcon from 'lucide-svelte/icons/x';
 	import { flip } from 'svelte/animate';
+	import { writable } from 'svelte/store';
 	import { scale, slide } from 'svelte/transition';
 
 	import { chipVariants } from '$lib/shadcn/custom/chip.svelte';
@@ -22,11 +23,14 @@
 
 	let inputRef: HTMLInputElement | null = $state(null);
 
+	const initialValueAsArray = Array.from(value);
+
+	const tags = writable(initialValueAsArray.map((v) => ({ id: v, value: v })));
+
 	const {
-		elements: { root, input, tag, deleteTrigger, edit },
-		states: { tags }
+		elements: { root, input, tag, deleteTrigger, edit }
 	} = createTagsInput({
-		defaultTags: Array.from(value),
+		tags,
 		unique: true,
 		add(tag) {
 			if (tag.includes(',')) {
@@ -44,6 +48,7 @@
 		},
 		onTagsChange({ next }) {
 			value = new Set(next.map((t) => t.value));
+			$comboboxSelected = next.map(({ value }) => ({ label: value, value: value }));
 
 			return next;
 		}
@@ -55,14 +60,32 @@
 		return suggestions.filter((s) => s.toLowerCase().includes(normalizedInputValue));
 	});
 
+	const comboboxSelected = writable(initialValueAsArray.map((v) => ({ label: v, value: v })));
+
 	const {
 		elements: { menu: comboboxMenu, input: comboboxInput, option: comboboxOption },
 		states: { open: comboboxOpen, inputValue: comboboxInputValue },
 		helpers: { isSelected: comboboxIsSelected }
 	} = createCombobox({
+		selected: comboboxSelected,
+		onSelectedChange({ next }) {
+			if (!next) return;
+
+			value = new Set(next.map(({ value }) => value));
+			$tags = next.map(({ value }) => ({ id: value, value }));
+
+			return next;
+		},
 		forceVisible: true,
 		multiple: true,
 		portal: null
+	});
+
+	$effect(() => {
+		const valueAsArray = Array.from(value);
+
+		$tags = valueAsArray.map((v) => ({ id: v, value: v }));
+		$comboboxSelected = valueAsArray.map((v) => ({ label: v, value: v }));
 	});
 </script>
 
